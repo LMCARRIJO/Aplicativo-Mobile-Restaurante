@@ -23,7 +23,8 @@ class ProdutoService
         if ($foto) {
             $data['foto_path'] = $this->storeFoto($foto);
         }
-        return Produto::create($data);
+        // fresh() pra devolver defaults do banco (ex: quantidade_estoque 0) já no POST
+        return Produto::create($data)->fresh();
     }
 
     public function update(Produto $produto, array $data, ?UploadedFile $foto = null): Produto

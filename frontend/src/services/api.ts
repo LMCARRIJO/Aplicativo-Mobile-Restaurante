@@ -16,10 +16,14 @@ export async function listProdutos(): Promise<Produto[]> {
   return json.data ?? json;
 }
 
-export async function createProduto(data: { nome: string; preco: string; fotoUri?: string }): Promise<Produto> {
+export async function createProduto(data: { nome: string; descricao?: string; preco: string; quantidade_estoque?: number; data_validade?: string; categoria?: string; fotoUri?: string }): Promise<Produto> {
   const form = new FormData();
   form.append('nome', data.nome);
+  if (data.descricao) form.append('descricao', data.descricao);
   form.append('preco', data.preco);
+  if (data.quantidade_estoque !== undefined) form.append('quantidade_estoque', String(data.quantidade_estoque));
+  if (data.data_validade) form.append('data_validade', data.data_validade);
+  if (data.categoria) form.append('categoria', data.categoria);
   if (data.fotoUri) {
     const filename = data.fotoUri.split('/').pop() ?? 'foto.jpg';
     const ext = filename.split('.').pop() ?? 'jpg';

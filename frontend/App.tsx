@@ -8,7 +8,11 @@ export default function App() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [loading, setLoading] = useState(true);
   const [nome, setNome] = useState('');
+  const [descricao, setDescricao] = useState('');
   const [preco, setPreco] = useState('');
+  const [estoque, setEstoque] = useState('');
+  const [validade, setValidade] = useState('');
+  const [categoria, setCategoria] = useState('');
 
   const load = async () => {
     try {
@@ -29,9 +33,13 @@ export default function App() {
   const handleCreate = async () => {
     if (!nome || !preco) return Alert.alert('Preencha nome e preço');
     try {
-      await createProduto({ nome, preco });
+      await createProduto({ nome, descricao, preco, quantidade_estoque: estoque === '' ? undefined : Number(estoque), data_validade: validade === '' ? undefined : validade, categoria: categoria === '' ? undefined : categoria });
       setNome('');
+      setDescricao('');
       setPreco('');
+      setEstoque('');
+      setValidade('');
+      setCategoria('');
       await load();
     } catch (e: any) {
       Alert.alert('Erro ao criar', e.message);
@@ -50,9 +58,13 @@ export default function App() {
 
       <View style={styles.form}>
         <TextInput placeholder="Nome (string)" value={nome} onChangeText={setNome} style={styles.input} />
+        <TextInput placeholder="Descrição (texto opcional)" value={descricao} onChangeText={setDescricao} style={styles.input} />
         <TextInput placeholder="Preço (number ex: 19.90)" value={preco} onChangeText={setPreco} keyboardType="decimal-pad" style={styles.input} />
+        <TextInput placeholder="Estoque (integer ex: 10)" value={estoque} onChangeText={setEstoque} keyboardType="number-pad" style={styles.input} />
+        <TextInput placeholder="Validade (data AAAA-MM-DD)" value={validade} onChangeText={setValidade} style={styles.input} />
+        <TextInput placeholder="Categoria (ex: Prato Principal)" value={categoria} onChangeText={setCategoria} style={styles.input} />
         <Text style={styles.hint}>Foto: use multipart/form-data via endpoint POST /api/produtos campo `foto`</Text>
-        <Button title="Criar Produto (3 attrs base)" onPress={handleCreate} />
+        <Button title="Criar Produto" onPress={handleCreate} />
       </View>
 
       {loading ? (
@@ -65,9 +77,12 @@ export default function App() {
           renderItem={({ item }) => (
             <View style={styles.card}>
               <Text style={styles.cardTitle}>{item.nome} - R$ {item.preco}</Text>
+              {item.descricao ? <Text>{item.descricao}</Text> : null}
+              <Text>Estoque: {item.quantidade_estoque}</Text>
+              {item.data_validade ? <Text>Validade: {item.data_validade}</Text> : null}
+              {item.categoria ? <Text>Categoria: {item.categoria}</Text> : null}
               {item.foto_url && <Image source={{ uri: item.foto_url }} style={styles.image} />}
               <Text style={styles.meta}>ID {item.id} • {new Date(item.created_at).toLocaleDateString()}</Text>
-              {/* Oi, aqui você pode mostrar os campos novos quando liberar: descricao, quantidade_estoque, data_validade, categoria */}
               <Button title="Excluir" color="#c00" onPress={() => handleDelete(item.id)} />
             </View>
           )}

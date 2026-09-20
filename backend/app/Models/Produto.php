@@ -15,20 +15,18 @@ class Produto extends Model
      */
     protected $fillable = [
         'nome',
+        'descricao',
         'preco',
+        'quantidade_estoque',
+        'data_validade',
+        'categoria',
         'foto_path',
-        // Quando você criar sua migration, descomenta as linhas abaixo.
-        // 'descricao',
-        // 'quantidade_estoque',
-        // 'data_validade',
-        // 'categoria',
     ];
 
     protected $casts = [
         'preco' => 'decimal:2',
-        // Você também descomenta aqui quando adicionar os campos acima
-        // 'quantidade_estoque' => 'integer',
-        // 'data_validade' => 'date',
+        'quantidade_estoque' => 'integer',
+        'data_validade' => 'date',
     ];
 
     /**
