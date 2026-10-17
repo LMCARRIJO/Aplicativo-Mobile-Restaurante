@@ -9,14 +9,18 @@ use App\Http\Resources\ProdutoResource;
 use App\Models\Produto;
 use App\Services\ProdutoService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class ProdutoController extends Controller
 {
     public function __construct(private ProdutoService $service) {}
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $produtos = $this->service->listAll();
+        $perPage = max(1, min((int) $request->input('per_page', 15), 100));
+        $produtos = $this->service->listAll($perPage);
+
         return ProdutoResource::collection($produtos)->response();
     }
 
@@ -26,6 +30,7 @@ class ProdutoController extends Controller
             $request->validated(),
             $request->file('foto')
         );
+
         return (new ProdutoResource($produto))->response()->setStatusCode(201);
     }
 
@@ -41,12 +46,14 @@ class ProdutoController extends Controller
             $request->validated(),
             $request->file('foto')
         );
+
         return new ProdutoResource($updated);
     }
 
-    public function destroy(Produto $produto): JsonResponse
+    public function destroy(Produto $produto): Response
     {
         $this->service->delete($produto);
-        return response()->json(null, 204);
+
+        return response()->noContent();
     }
 }

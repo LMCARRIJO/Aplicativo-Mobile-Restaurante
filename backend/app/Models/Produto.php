@@ -10,25 +10,26 @@ class Produto extends Model
     use HasFactory;
 
     /**
-     * Atributos que você pode preencher de uma vez.
-     * Já deixei 3 liberados; os outros 4 você libera quando criar sua migration - é só descomentar
+     * Atributos preenchíveis em massa.
      */
     protected $fillable = [
         'nome',
         'preco',
         'foto_path',
-        // Quando você criar sua migration, descomenta as linhas abaixo.
-        // 'descricao',
-        // 'quantidade_estoque',
-        // 'data_validade',
-        // 'categoria',
+        'descricao',
+        'quantidade_estoque',
+        'data_validade',
+        'categoria',
     ];
 
     protected $casts = [
         'preco' => 'decimal:2',
-        // Você também descomenta aqui quando adicionar os campos acima
-        // 'quantidade_estoque' => 'integer',
-        // 'data_validade' => 'date',
+        'quantidade_estoque' => 'integer',
+        'data_validade' => 'date',
+    ];
+
+    protected $attributes = [
+        'quantidade_estoque' => 0,
     ];
 
     /**
@@ -36,6 +37,6 @@ class Produto extends Model
      */
     public function getFotoUrlAttribute(): ?string
     {
-        return $this->foto_path ? asset('storage/' . $this->foto_path) : null;
+        return $this->foto_path ? asset('storage/'.$this->foto_path) : null;
     }
 }

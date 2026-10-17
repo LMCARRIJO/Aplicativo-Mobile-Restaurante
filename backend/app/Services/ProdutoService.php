@@ -12,7 +12,6 @@ class ProdutoService
      * Camada de Serviço OO - centraliza regras de negócio e upload.
      * Mantém Controller magro (SOLID - Single Responsibility)
      */
-
     public function listAll(int $perPage = 15)
     {
         return Produto::latest()->paginate($perPage);
@@ -23,6 +22,7 @@ class ProdutoService
         if ($foto) {
             $data['foto_path'] = $this->storeFoto($foto);
         }
+
         return Produto::create($data);
     }
 
@@ -33,6 +33,7 @@ class ProdutoService
             $data['foto_path'] = $this->storeFoto($foto);
         }
         $produto->update($data);
+
         return $produto->fresh();
     }
 

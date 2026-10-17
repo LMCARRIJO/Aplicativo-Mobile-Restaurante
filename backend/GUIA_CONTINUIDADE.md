@@ -1,64 +1,57 @@
-# Oi, aqui é onde você continua - 4 atributos restantes
+# Continuidade - os 7 atributos já estão prontos
 
-Deixei este backend já com **3 atributos base** prontos pra você (camada OO):
-- `nome` (string) - `app/Models/Produto.php:12`
-- `preco` (decimal/number) - `app/Models/Produto.php:13`
-- `foto_path` / `foto_url` (foto) - `app/Services/ProdutoService.php:1` + `app/Http/Requests/*`
+Este backend começou com **3 atributos base** e agora cobre os **7 atributos** exigidos, todos com camada OO:
 
-Eu cuidei da base, agora você completa com os 4 que faltam, combinado?
+| Atributo | Tipo | Onde |
+| --- | --- | --- |
+| `nome` | string(150) | `app/Models/Produto.php:16` |
+| `preco` | decimal(10,2) | `app/Models/Produto.php:17` |
+| `foto_path` / `foto_url` | foto (storage) | `app/Services/ProdutoService.php:46` |
+| `descricao` | text | migration de complemento |
+| `quantidade_estoque` | integer (default 0) | migration de complemento |
+| `data_validade` | date | migration de complemento |
+| `categoria` | string(80) | migration de complemento |
 
-## O que você vai adicionar
-Sugestão pra cobrir todos os tipos que pediram (string + number + date):
-1. `descricao` - `text` nullable (string longa)
-2. `quantidade_estoque` - `integer` (number)
-3. `data_validade` - `date` (data)
-4. `categoria` - `string` (ex: Entrada, Prato Principal...)
+Os 4 últimos foram adicionados em `database/migrations/2026_10_17_202211_add_campos_restantes_to_produtos_table.php:1` (sem tocar na migration base `2026_09_20_173920`).
 
-## Como você faz, passo a passo (sem dar conflito com o que já fiz)
+## O que foi feito
 
-1. Cria uma migration nova sua (por favor, não mexe na minha base `2026_09_20_173920`):
-```bash
-php artisan make:migration add_campos_restantes_to_produtos_table
-```
-Conteúdo que te sugiro:
-```php
-Schema::table('produtos', function (Blueprint $table) {
-    $table->text('descricao')->nullable()->after('nome');
-    $table->integer('quantidade_estoque')->default(0)->after('preco');
-    $table->date('data_validade')->nullable()->after('quantidade_estoque');
-    $table->string('categoria', 80)->nullable()->after('data_validade');
-});
-```
+1. Migration de complemento com `descricao`, `quantidade_estoque`, `data_validade`, `categoria`.
+2. Model `app/Models/Produto.php:1`: os 7 campos no `$fillable`, casts (`quantidade_estoque` integer, `data_validade` date) e default em memória `quantidade_estoque => 0`.
+3. Requests `app/Http/Requests/StoreProdutoRequest.php:1` e `UpdateProdutoRequest.php:1`: regras dos 4 campos extras (`quantidade_estoque` como `nullable|integer|min:0`).
+4. Resource `app/Http/Resources/ProdutoResource.php:1`: expõe os 7 campos (`data_validade` em `Y-m-d`).
+5. Factory `database/factories/ProdutoFactory.php:1`: gera dados falsos dos 4 campos extras.
+6. Frontend (estrutura feature-driven com Expo Router) com **CRUD completo**: tipos em `frontend/src/features/produtos/types/Produto.ts:1`, chamadas em `frontend/src/features/produtos/services/produtosApi.ts:1`, telas em `frontend/src/features/produtos/screens/`, componentes em `frontend/src/features/produtos/components/` e rotas em `frontend/src/app/`. Inserção/edição com foto via `expo-image-picker`, exclusão com confirmação e lista recarregada ao voltar (`useFocusEffect`).
 
-2. Atualiza o Model `app/Models/Produto.php:1`:
-- Descomenta `descricao, quantidade_estoque, data_validade, categoria` no `$fillable` - deixei anotado lá pra você
-- Descomenta os casts também
+## Correções aplicadas junto
 
-3. Atualiza os Requests:
-- `app/Http/Requests/StoreProdutoRequest.php:1` e `UpdateProdutoRequest.php:1` -> descomenta as regras que deixei pra você
-- Dica que te dou: `quantidade_estoque` deixa como `required|integer|min:0` no store
+- `destroy` agora responde `204` **sem corpo** (`response()->noContent()`).
+- `index` aceita `per_page` (1..100, default 15); o frontend percorre todas as páginas.
+- Exclusão no app pede confirmação (`Alert`) e trata erro com `try/catch` + `Alert`; a lista recarrega ao voltar (`useFocusEffect`).
+- Edição no app envia multipart com `_method=PUT`, permitindo trocar a foto.
+- Symlink `public/storage` recriado (se ele virar pasta comum no clone, rode `php artisan storage:link`).
 
-4. Atualiza o Resource `app/Http/Resources/ProdutoResource.php:1` -> descomenta as 4 linhas que deixei lá
+## Como testar
 
-5. Factory `database/factories/ProdutoFactory.php:1` -> descomenta as 4 linhas também
-
-6. Testa tudo que fizemos:
 ```bash
 php artisan migrate:fresh --seed
 php artisan test
-curl http://localhost:8000/api/produtos
+php artisan serve --host=0.0.0.0 --port=8000
+curl "http://localhost:8000/api/produtos?per_page=100"
 ```
 
-## Endpoints que já deixei prontos pra você usar
-- `GET /api/produtos` - lista paginada
-- `POST /api/produtos` - multipart/form-data (campos + `foto` image)
+## Endpoints prontos
+
+- `GET /api/produtos?page=1&per_page=15` - lista paginada
+- `POST /api/produtos` - multipart/form-data (7 campos + `foto` image)
 - `GET /api/produtos/{id}`
-- `PUT/PATCH /api/produtos/{id}`
-- `DELETE /api/produtos/{id}`
+- `PUT/PATCH /api/produtos/{id}` - json ou multipart (o app usa `POST` multipart com `_method=PUT`)
+- `DELETE /api/produtos/{id}` - `204`
 
-A foto eu já tratei em `ProdutoService::storeFoto()` com disco `public` (`storage/app/public/produtos`), você só precisa mandar `foto` como image.
+A foto é tratada em `ProdutoService::storeFoto()` com disco `public` (`storage/app/public/produtos`); basta enviar `foto` como image. No app, a inserção e a edição já enviam `fotoUri`.
 
-## Frontend
-`frontend/src/types/Produto.ts:1` e `frontend/App.tsx:1` já deixei comentários pra você liberar os novos campos quando quiser.
+## Próximos passos sugeridos
 
-Qualquer dúvida, me chama - deixei tudo comentado de um jeito que você vai achar fácil.
+- Autenticar as rotas com Sanctum (hoje são públicas).
+- Opção de remover a foto existente na edição (hoje só seleciona/troca).
+- Paginação na UI com `onEndReached` em vez de carregar tudo.

@@ -17,11 +17,10 @@ class UpdateProdutoRequest extends FormRequest
             'nome' => 'sometimes|required|string|max:150',
             'preco' => 'sometimes|required|numeric|min:0|max:999999.99',
             'foto' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            // Você descomenta aqui também quando liberar os novos campos
-            // 'descricao' => 'nullable|string|max:1000',
-            // 'quantidade_estoque' => 'sometimes|integer|min:0',
-            // 'data_validade' => 'nullable|date|after:today',
-            // 'categoria' => 'nullable|string|max:80',
+            'descricao' => 'sometimes|nullable|string|max:1000',
+            'quantidade_estoque' => 'sometimes|nullable|integer|min:0',
+            'data_validade' => 'sometimes|nullable|date|after:today',
+            'categoria' => 'sometimes|nullable|string|max:80',
         ];
     }
 }
