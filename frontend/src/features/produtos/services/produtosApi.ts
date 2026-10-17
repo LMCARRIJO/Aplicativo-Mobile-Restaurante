@@ -1,15 +1,12 @@
-import axios from 'axios';
+/**
+ * Service de API da feature de produtos - centraliza chamadas ao backend Laravel.
+ * Ajuste API_URL para o IP da sua máquina quando testar no device físico.
+ * Ex: http://192.168.0.10:8000/api
+ */
 import { PaginatedProdutos, Produto, ProdutoInput } from '../types/Produto';
 
 export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://10.0.2.2:8000/api';
-
-export const api = axios.create({
-  baseURL: API_URL,
-  headers: { Accept: 'application/json' },
-  timeout: 15000,
-});
-
-const MULTIPART = { headers: { 'Content-Type': 'multipart/form-data' } };
+// Android emulator: 10.0.2.2, iOS simulator: http://localhost:8000/api, device físico: IP local
 
 export async function listProdutos(): Promise<Produto[]> {
   const todos: Produto[] = [];
@@ -17,11 +14,12 @@ export async function listProdutos(): Promise<Produto[]> {
   let lastPage = 1;
 
   do {
-    const { data } = await api.get<PaginatedProdutos>('/produtos', {
-      params: { page, per_page: 100 },
-    });
-    todos.push(...(data.data ?? []));
-    lastPage = data.meta?.last_page ?? 1;
+    const res = await fetch(`${API_URL}/produtos?page=${page}&per_page=100`);
+    if (!res.ok) throw new Error(`Erro ${res.status}`);
+    const json: PaginatedProdutos | Produto[] = await res.json();
+    const itens = Array.isArray(json) ? json : json.data ?? [];
+    todos.push(...itens);
+    lastPage = Array.isArray(json) ? 1 : json.meta?.last_page ?? 1;
     page += 1;
   } while (page <= lastPage);
 
@@ -29,48 +27,59 @@ export async function listProdutos(): Promise<Produto[]> {
 }
 
 export async function getProduto(id: number): Promise<Produto> {
-  const { data } = await api.get(`/produtos/${id}`);
-  return (data as any).data ?? data;
+  const res = await fetch(`${API_URL}/produtos/${id}`, {
+    headers: { Accept: 'application/json' },
+  });
+  if (!res.ok) throw new Error(`Erro ${res.status}`);
+  const json = await res.json();
+  return json.data ?? json;
 }
 
-function montarFormData(dados: ProdutoInput): FormData {
+export async function createProduto(input: ProdutoInput): Promise<Produto> {
   const form = new FormData();
-  form.append('nome', dados.nome);
-  form.append('preco', dados.preco.replace(',', '.'));
-  if (dados.descricao) form.append('descricao', dados.descricao);
-  if (dados.quantidade_estoque) form.append('quantidade_estoque', dados.quantidade_estoque);
-  if (dados.data_validade) form.append('data_validade', dados.data_validade);
-  if (dados.categoria) form.append('categoria', dados.categoria);
-  if (dados.fotoUri) {
-    const nome = dados.fotoUri.split('/').pop() ?? 'foto.jpg';
+  form.append('nome', input.nome);
+  form.append('preco', input.preco);
+  if (input.descricao) form.append('descricao', input.descricao);
+  if (input.quantidade_estoque) form.append('quantidade_estoque', input.quantidade_estoque);
+  if (input.data_validade) form.append('data_validade', input.data_validade);
+  if (input.categoria) form.append('categoria', input.categoria);
+  if (input.fotoUri) {
+    const nome = input.fotoUri.split('/').pop() ?? 'foto.jpg';
     const ext = nome.split('.').pop() ?? 'jpg';
-    form.append('foto', { uri: dados.fotoUri, name: nome, type: `image/${ext}` } as any);
+    form.append('foto', { uri: input.fotoUri, name: nome, type: `image/${ext}` } as any);
   }
-  return form;
+
+  const res = await fetch(`${API_URL}/produtos`, { method: 'POST', body: form });
+  if (!res.ok) throw new Error(`Erro ${res.status}`);
+  const json = await res.json();
+  return json.data ?? json;
 }
 
-export async function createProduto(dados: ProdutoInput): Promise<Produto> {
-  const { data } = await api.post('/produtos', montarFormData(dados), MULTIPART);
-  return (data as any).data ?? data;
-}
-
-export async function updateProduto(id: number, dados: ProdutoInput): Promise<Produto> {
-  const form = montarFormData(dados);
+export async function updateProduto(id: number, input: ProdutoInput): Promise<Produto> {
+  const form = new FormData();
   form.append('_method', 'PUT');
-  const { data } = await api.post(`/produtos/${id}`, form, MULTIPART);
-  return (data as any).data ?? data;
+  form.append('nome', input.nome);
+  form.append('preco', input.preco);
+  if (input.descricao) form.append('descricao', input.descricao);
+  if (input.quantidade_estoque) form.append('quantidade_estoque', input.quantidade_estoque);
+  if (input.data_validade) form.append('data_validade', input.data_validade);
+  if (input.categoria) form.append('categoria', input.categoria);
+  if (input.fotoUri) {
+    const nome = input.fotoUri.split('/').pop() ?? 'foto.jpg';
+    const ext = nome.split('.').pop() ?? 'jpg';
+    form.append('foto', { uri: input.fotoUri, name: nome, type: `image/${ext}` } as any);
+  }
+
+  const res = await fetch(`${API_URL}/produtos/${id}`, { method: 'POST', body: form });
+  if (!res.ok) throw new Error(`Erro ${res.status}`);
+  const json = await res.json();
+  return json.data ?? json;
 }
 
 export async function deleteProduto(id: number): Promise<void> {
-  await api.delete(`/produtos/${id}`);
-}
-
-export function mensagemErro(error: unknown): string {
-  if (axios.isAxiosError(error)) {
-    const data = error.response?.data as any;
-    if (data?.errors) return Object.values(data.errors).flat().join('\n');
-    if (data?.message) return data.message;
-    return error.message;
-  }
-  return error instanceof Error ? error.message : 'Erro inesperado';
+  const res = await fetch(`${API_URL}/produtos/${id}`, {
+    method: 'DELETE',
+    headers: { Accept: 'application/json' },
+  });
+  if (!res.ok) throw new Error(`Erro ${res.status}`);
 }

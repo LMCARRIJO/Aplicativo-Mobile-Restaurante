@@ -2,13 +2,21 @@
 
 namespace App\Http\Requests;
 
+use App\Http\Requests\Concerns\NormalizaCamposVazios;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreProdutoRequest extends FormRequest
 {
+    use NormalizaCamposVazios;
+
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->normalizarCamposVazios('descricao', 'categoria');
     }
 
     public function rules(): array
