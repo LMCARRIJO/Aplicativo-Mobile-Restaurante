@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\NormalizaCamposVazios;
+use App\Models\Produto;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -17,7 +18,15 @@ class UpdateProdutoRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $this->normalizarCamposVazios('descricao', 'categoria');
+        $this->normalizarCamposVazios(
+            'descricao',
+            'categoria',
+            'preco_promocional',
+            'ingredientes',
+            'alergenicos',
+            'porcao',
+            'promocao_fim',
+        );
     }
 
     public function rules(): array
@@ -29,9 +38,12 @@ class UpdateProdutoRequest extends FormRequest
             'foto' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'remover_foto' => 'sometimes|boolean',
             'descricao' => 'sometimes|nullable|string|max:1000',
-            'quantidade_estoque' => 'sometimes|nullable|integer|min:0',
-            'data_validade' => 'sometimes|nullable|date|after:today',
-            'categoria' => 'sometimes|nullable|string|max:80',
+            'ingredientes' => 'sometimes|nullable|string|max:2000',
+            'alergenicos' => 'sometimes|nullable|string|max:255',
+            'porcao' => 'sometimes|nullable|integer|min:1|max:99',
+            'disponivel' => 'sometimes|boolean',
+            'promocao_fim' => 'sometimes|nullable|date',
+            'categoria' => ['sometimes', 'nullable', 'string', 'max:80', Rule::in(Produto::CATEGORIAS)],
         ];
     }
 
@@ -41,6 +53,8 @@ class UpdateProdutoRequest extends FormRequest
             'nome.required' => 'Nome é obrigatório',
             'preco.required' => 'Preço é obrigatório',
             'foto.image' => 'Foto deve ser uma imagem válida',
+            'categoria.in' => 'Categoria inválida para o cardápio',
+            'porcao.min' => 'A porção deve servir ao menos 1 pessoa',
         ];
     }
 }

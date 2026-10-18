@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Http\Requests\Concerns\NormalizaCamposVazios;
+use App\Models\Produto;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -17,7 +18,15 @@ class StoreProdutoRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $this->normalizarCamposVazios('descricao', 'categoria');
+        $this->normalizarCamposVazios(
+            'descricao',
+            'categoria',
+            'preco_promocional',
+            'ingredientes',
+            'alergenicos',
+            'porcao',
+            'promocao_fim',
+        );
     }
 
     public function rules(): array

@@ -1,16 +1,18 @@
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 import { Botao } from '@/shared/components/Botao';
 import { ModalConfirmacao } from '@/shared/components/ModalConfirmacao';
+import { useTheme, type Cores } from '@/shared/theme';
 import { ProdutoCard } from '../components/ProdutoCard';
 import { useProdutos } from '../hooks/useProdutos';
-import { API_URL } from '../services/produtosApi';
-import { Produto } from '../types/Produto';
+import type { Produto } from '../types/Produto';
 
 export default function ProdutosScreen() {
+  const { cores } = useTheme();
+  const estilos = useMemo(() => criarEstilos(cores), [cores]);
   const { produtos, loading, refreshing, reload, refresh, remove } = useProdutos();
-  const [produtoParaExcluir, setProdutoParaExcluir] = useState<Produto | null>(null);
+  const [alvo, setAlvo] = useState<Produto | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -18,67 +20,58 @@ export default function ProdutosScreen() {
     }, [reload]),
   );
 
-  const confirmarExclusao = (produto: Produto) => {
-    setProdutoParaExcluir(produto);
-  };
-
   const excluir = () => {
-    if (!produtoParaExcluir) return;
-    const id = produtoParaExcluir.id;
-    setProdutoParaExcluir(null);
+    if (!alvo) return;
+    const id = alvo.id;
+    setAlvo(null);
     remove(id);
   };
 
   return (
-    <View style={styles.container}>
+    <View style={estilos.container}>
       <Botao
         title="Novo produto"
         onPress={() => router.push('/produto/novo')}
-        containerStyle={styles.novo}
+        containerStyle={estilos.novo}
       />
 
       {loading ? (
-        <ActivityIndicator style={styles.loading} />
+        <ActivityIndicator style={estilos.loading} color={cores.primary} />
       ) : (
         <FlatList
           data={produtos}
           keyExtractor={(item) => String(item.id)}
           refreshing={refreshing}
           onRefresh={refresh}
-          contentContainerStyle={styles.list}
+          contentContainerStyle={estilos.list}
           renderItem={({ item }) => (
             <ProdutoCard
               produto={item}
               onEdit={(id) => router.push({ pathname: '/produto/[id]', params: { id: String(id) } })}
-              onDelete={() => confirmarExclusao(item)}
+              onDelete={() => setAlvo(item)}
             />
           )}
-          ListEmptyComponent={
-            <Text style={styles.empty}>Nenhum produto. Backend: {API_URL}/produtos</Text>
-          }
+          ListEmptyComponent={<Text style={estilos.empty}>Nenhum produto cadastrado no cardápio.</Text>}
         />
       )}
 
       <ModalConfirmacao
-        visible={produtoParaExcluir !== null}
+        visible={alvo !== null}
         titulo="Excluir produto"
-        mensagem={
-          produtoParaExcluir
-            ? `Deseja excluir "${produtoParaExcluir.nome}"?`
-            : ''
-        }
+        mensagem={alvo ? `Deseja excluir "${alvo.nome}"?` : ''}
         textoConfirmar="Excluir"
         onConfirmar={excluir}
-        onCancelar={() => setProdutoParaExcluir(null)}
+        onCancelar={() => setAlvo(null)}
       />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  novo: { margin: 16 },
-  loading: { marginTop: 32 },
-  list: { paddingHorizontal: 16, paddingBottom: 40 },
-  empty: { textAlign: 'center', color: '#888', marginTop: 32 },
-});
+const criarEstilos = (c: Cores) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.background },
+    novo: { margin: 16 },
+    loading: { marginTop: 32 },
+    list: { paddingHorizontal: 16, paddingBottom: 40 },
+    empty: { textAlign: 'center', color: c.muted, marginTop: 32 },
+  });

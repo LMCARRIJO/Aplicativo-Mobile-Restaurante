@@ -1,59 +1,46 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { useTheme, type Cores } from '@/shared/theme';
 import { alerta } from '@/shared/utils/dialogos';
 import { ProdutoForm } from '../components/ProdutoForm';
-import { createProduto, getProduto, updateProduto, urlFoto } from '../services/produtosApi';
-import { Produto, ProdutoInput } from '../types/Produto';
+import { useProduto, useSalvarProduto } from '../hooks/useProdutos';
+import { mensagemErro, urlFoto } from '../services/produtosApi';
+import type { ProdutoInput } from '../types/Produto';
 
 export default function ProdutoFormScreen() {
+  const { cores } = useTheme();
+  const estilos = useMemo(() => criarEstilos(cores), [cores]);
+
   const { id } = useLocalSearchParams<{ id?: string }>();
-  const editando = Boolean(id);
+  const numeroId = id ? Number(id) : undefined;
+  const editando = numeroId != null;
 
-  const [produto, setProduto] = useState<Produto | null>(null);
-  const [carregando, setCarregando] = useState(editando);
-  const [salvando, setSalvando] = useState(false);
-
-  useEffect(() => {
-    if (!id) return;
-    (async () => {
-      try {
-        setProduto(await getProduto(Number(id)));
-      } catch (e: any) {
-        alerta('Erro', e.message);
-      } finally {
-        setCarregando(false);
-      }
-    })();
-  }, [id]);
+  const produtoQuery = useProduto(numeroId);
+  const { mutateAsync, isPending } = useSalvarProduto();
 
   const handleSubmit = async (data: ProdutoInput) => {
     try {
-      setSalvando(true);
-      if (editando && id) {
-        await updateProduto(Number(id), data);
-      } else {
-        await createProduto(data);
-      }
+      await mutateAsync({ id: numeroId, input: data });
       await alerta('Sucesso', editando ? 'Produto atualizado.' : 'Produto criado.');
       router.back();
-    } catch (e: any) {
-      alerta('Erro ao salvar', e.message);
-    } finally {
-      setSalvando(false);
+    } catch (e) {
+      await alerta('Erro ao salvar', mensagemErro(e));
     }
   };
 
-  if (carregando) {
+  if (editando && produtoQuery.isLoading) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator />
+      <View style={estilos.center}>
+        <ActivityIndicator color={cores.primary} />
       </View>
     );
   }
 
+  const produto = produtoQuery.data;
+
   return (
-    <View style={styles.container}>
+    <View style={estilos.container}>
       <ProdutoForm
         initial={
           produto
@@ -72,7 +59,7 @@ export default function ProdutoFormScreen() {
             : undefined
         }
         fotoAtualUrl={urlFoto(produto?.foto_path ?? null)}
-        submitting={salvando}
+        submitting={isPending}
         submitLabel={editando ? 'Salvar alterações' : 'Criar produto'}
         onSubmit={handleSubmit}
       />
@@ -80,7 +67,8 @@ export default function ProdutoFormScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-});
+const criarEstilos = (c: Cores) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.background },
+    center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: c.background },
+  });

@@ -1,95 +1,117 @@
-/**
- * Service de API da feature de produtos - centraliza chamadas ao backend Laravel.
- * Ajuste API_URL para o IP da sua máquina quando testar no device físico.
- * Ex: http://192.168.0.10:8000/api
- */
+import axios from 'axios';
+import { Platform } from 'react-native';
 import { PaginatedProdutos, Produto, ProdutoInput } from '../types/Produto';
 
-export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://10.0.2.2:8000/api';
-// Android emulator: 10.0.2.2, iOS simulator: http://localhost:8000/api, device físico: IP local
-
 /**
- * Monta a URL pública da foto a partir do caminho salvo no backend.
- * Usa a origem da API, então funciona no Codespace, emulador e device físico.
+ * Resolve a base da API. No Codespaces (web) troca a porta 8081 do Expo pela 8000 do Laravel.
  */
+export function resolverApiUrl(): string {
+  if (process.env.EXPO_PUBLIC_API_URL) return process.env.EXPO_PUBLIC_API_URL;
+  if (Platform.OS === 'web' && typeof window !== 'undefined') {
+    const { protocol, hostname } = window.location;
+    const host = hostname.replace(/-8081\./, '-8000.');
+    return `${protocol}//${host}/api`;
+  }
+  return 'http://10.0.2.2:8000/api';
+}
+
+export const API_URL = resolverApiUrl();
+
+/** URL pública da foto (usa a origem da API; funciona no Codespace, emulador e device). */
 export function urlFoto(fotoPath?: string | null): string | null {
   if (!fotoPath) return null;
   const origem = API_URL.replace(/\/api\/?$/, '');
   return `${origem}/storage/${fotoPath.replace(/^\/+/, '')}`;
 }
 
+const api = axios.create({
+  baseURL: API_URL,
+  headers: { Accept: 'application/json' },
+  timeout: 20000,
+});
+
+/** Extrai a melhor mensagem possível de um erro axios (inclui erros de validação do Laravel). */
+export function mensagemErro(erro: unknown): string {
+  if (axios.isAxiosError(erro)) {
+    const data = erro.response?.data as any;
+    if (data?.errors) {
+      const primeira = Object.values(data.errors)[0];
+      if (Array.isArray(primeira) && primeira[0]) return String(primeira[0]);
+    }
+    if (data?.message) return String(data.message);
+    return erro.message;
+  }
+  if (erro instanceof Error) return erro.message;
+  return 'Erro inesperado.';
+}
+
+function montarFormData(input: ProdutoInput, comFoto: boolean): FormData {
+  const form = new FormData();
+  const add = (k: string, v?: string | null) => {
+    if (v !== undefined && v !== null) form.append(k, v);
+  };
+
+  add('nome', input.nome);
+  add('preco', input.preco);
+  add('preco_promocional', input.preco_promocional ?? '');
+  add('descricao', input.descricao ?? '');
+  add('ingredientes', input.ingredientes ?? '');
+  add('alergenicos', input.alergenicos ?? '');
+  add('porcao', input.porcao ?? '');
+  add('categoria', input.categoria ?? '');
+  add('promocao_fim', input.promocao_fim ?? '');
+  form.append('disponivel', input.disponivel ? '1' : '0');
+
+  if (comFoto) {
+    if (input.fotoFile) {
+      form.append('foto', input.fotoFile); // web: File real do expo-image-picker
+    } else if (input.fotoUri) {
+      const nome = input.fotoName ?? input.fotoUri.split('/').pop() ?? 'foto.jpg';
+      const ext = nome.split('.').pop() ?? 'jpg';
+      form.append('foto', {
+        uri: input.fotoUri,
+        name: nome,
+        type: input.fotoType ?? `image/${ext}`,
+      } as any);
+    }
+  }
+  return form;
+}
+
 export async function listProdutos(): Promise<Produto[]> {
   const todos: Produto[] = [];
   let page = 1;
   let lastPage = 1;
-
   do {
-    const res = await fetch(`${API_URL}/produtos?page=${page}&per_page=100`);
-    if (!res.ok) throw new Error(`Erro ${res.status}`);
-    const json: PaginatedProdutos | Produto[] = await res.json();
-    const itens = Array.isArray(json) ? json : json.data ?? [];
+    const { data } = await api.get<PaginatedProdutos | Produto[]>('/produtos', {
+      params: { page, per_page: 100 },
+    });
+    const itens = Array.isArray(data) ? data : data.data ?? [];
     todos.push(...itens);
-    lastPage = Array.isArray(json) ? 1 : json.meta?.last_page ?? 1;
+    lastPage = Array.isArray(data) ? 1 : data.meta?.last_page ?? 1;
     page += 1;
   } while (page <= lastPage);
-
   return todos;
 }
 
 export async function getProduto(id: number): Promise<Produto> {
-  const res = await fetch(`${API_URL}/produtos/${id}`, {
-    headers: { Accept: 'application/json' },
-  });
-  if (!res.ok) throw new Error(`Erro ${res.status}`);
-  const json = await res.json();
-  return json.data ?? json;
+  const { data } = await api.get(`/produtos/${id}`);
+  return (data as any).data ?? data;
 }
 
 export async function createProduto(input: ProdutoInput): Promise<Produto> {
-  const form = new FormData();
-  form.append('nome', input.nome);
-  form.append('preco', input.preco);
-  if (input.descricao) form.append('descricao', input.descricao);
-  if (input.quantidade_estoque) form.append('quantidade_estoque', input.quantidade_estoque);
-  if (input.data_validade) form.append('data_validade', input.data_validade);
-  if (input.categoria) form.append('categoria', input.categoria);
-  if (input.fotoUri) {
-    const nome = input.fotoUri.split('/').pop() ?? 'foto.jpg';
-    const ext = nome.split('.').pop() ?? 'jpg';
-    form.append('foto', { uri: input.fotoUri, name: nome, type: `image/${ext}` } as any);
-  }
-
-  const res = await fetch(`${API_URL}/produtos`, { method: 'POST', body: form });
-  if (!res.ok) throw new Error(`Erro ${res.status}`);
-  const json = await res.json();
-  return json.data ?? json;
+  const { data } = await api.post('/produtos', montarFormData(input, true));
+  return (data as any).data ?? data;
 }
 
 export async function updateProduto(id: number, input: ProdutoInput): Promise<Produto> {
-  const form = new FormData();
-  form.append('_method', 'PUT');
-  form.append('nome', input.nome);
-  form.append('preco', input.preco);
-  if (input.descricao) form.append('descricao', input.descricao);
-  if (input.quantidade_estoque) form.append('quantidade_estoque', input.quantidade_estoque);
-  if (input.data_validade) form.append('data_validade', input.data_validade);
-  if (input.categoria) form.append('categoria', input.categoria);
-  if (input.fotoUri) {
-    const nome = input.fotoUri.split('/').pop() ?? 'foto.jpg';
-    const ext = nome.split('.').pop() ?? 'jpg';
-    form.append('foto', { uri: input.fotoUri, name: nome, type: `image/${ext}` } as any);
-  }
-
-  const res = await fetch(`${API_URL}/produtos/${id}`, { method: 'POST', body: form });
-  if (!res.ok) throw new Error(`Erro ${res.status}`);
-  const json = await res.json();
-  return json.data ?? json;
+  const comFoto = Boolean(input.fotoUri || input.fotoFile);
+  const form = montarFormData(input, comFoto);
+  form.append('_method', 'PUT'); // method spoofing no multipart
+  const { data } = await api.post(`/produtos/${id}`, form);
+  return (data as any).data ?? data;
 }
 
 export async function deleteProduto(id: number): Promise<void> {
-  const res = await fetch(`${API_URL}/produtos/${id}`, {
-    method: 'DELETE',
-    headers: { Accept: 'application/json' },
-  });
-  if (!res.ok) throw new Error(`Erro ${res.status}`);
+  await api.delete(`/produtos/${id}`);
 }

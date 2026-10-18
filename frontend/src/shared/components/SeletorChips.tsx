@@ -1,47 +1,56 @@
+import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { radius, useTheme, type Cores } from '@/shared/theme';
 
 interface SeletorChipsProps {
   label: string;
   opcoes: readonly string[];
   selecionados: string[];
   onToggle: (opcao: string) => void;
+  erro?: string;
 }
 
-export function SeletorChips({ label, opcoes, selecionados, onToggle }: SeletorChipsProps) {
+export function SeletorChips({ label, opcoes, selecionados, onToggle, erro }: SeletorChipsProps) {
+  const { cores } = useTheme();
+  const estilos = useMemo(() => criarEstilos(cores), [cores]);
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.label}>{label}</Text>
-      <View style={styles.chips}>
+    <View style={estilos.container}>
+      <Text style={estilos.label}>{label}</Text>
+      <View style={estilos.chips}>
         {opcoes.map((opcao) => {
           const ativo = selecionados.includes(opcao);
           return (
             <Pressable
               key={opcao}
               onPress={() => onToggle(opcao)}
-              style={[styles.chip, ativo && styles.chipAtivo]}
+              style={[estilos.chip, ativo && estilos.chipAtivo]}
             >
-              <Text style={[styles.texto, ativo && styles.textoAtivo]}>{opcao}</Text>
+              <Text style={[estilos.texto, ativo && estilos.textoAtivo]}>{opcao}</Text>
             </Pressable>
           );
         })}
       </View>
+      {erro ? <Text style={estilos.erro}>{erro}</Text> : null}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { marginBottom: 10 },
-  label: { fontSize: 12, color: '#444', marginBottom: 6 },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 16,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    backgroundColor: '#fff',
-  },
-  chipAtivo: { backgroundColor: '#2563eb', borderColor: '#2563eb' },
-  texto: { fontSize: 12, color: '#333' },
-  textoAtivo: { color: '#fff', fontWeight: '600' },
-});
+const criarEstilos = (c: Cores) =>
+  StyleSheet.create({
+    container: { marginBottom: 12 },
+    label: { fontSize: 12, color: c.muted, marginBottom: 6, fontWeight: '600' },
+    chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    chip: {
+      borderWidth: 1,
+      borderColor: c.chipBorder,
+      borderRadius: radius.lg,
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+      backgroundColor: c.chipBg,
+    },
+    chipAtivo: { backgroundColor: c.chipAtivoBg, borderColor: c.chipAtivoBg },
+    texto: { fontSize: 12, color: c.chipTexto },
+    textoAtivo: { color: c.chipAtivoTexto, fontWeight: '700' },
+    erro: { color: c.danger, fontSize: 11, marginTop: 4 },
+  });

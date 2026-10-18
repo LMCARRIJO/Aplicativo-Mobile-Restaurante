@@ -1,43 +1,58 @@
-import { useCallback, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { alerta } from '@/shared/utils/dialogos';
-import { deleteProduto, listProdutos } from '../services/produtosApi';
-import { Produto } from '../types/Produto';
+import {
+  createProduto,
+  deleteProduto,
+  getProduto,
+  listProdutos,
+  mensagemErro,
+  updateProduto,
+} from '../services/produtosApi';
+import type { ProdutoInput } from '../types/Produto';
+
+export const produtosKeys = {
+  all: ['produtos'] as const,
+  list: () => [...produtosKeys.all, 'list'] as const,
+  detail: (id: number) => [...produtosKeys.all, 'detail', id] as const,
+};
 
 export function useProdutos() {
-  const [produtos, setProdutos] = useState<Produto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const query = useQuery({ queryKey: produtosKeys.list(), queryFn: listProdutos });
+  const excluir = useExcluirProduto();
 
-  const load = useCallback(async () => {
-    try {
-      setLoading(true);
-      setProdutos(await listProdutos());
-    } catch (e: any) {
-      alerta('Erro', e.message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  return {
+    produtos: query.data ?? [],
+    loading: query.isLoading,
+    refreshing: query.isFetching && !query.isLoading,
+    erro: query.error ? mensagemErro(query.error) : null,
+    reload: query.refetch,
+    refresh: query.refetch,
+    remove: (id: number) => excluir.mutate(id),
+  };
+}
 
-  const refresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      setProdutos(await listProdutos());
-    } catch (e: any) {
-      alerta('Erro', e.message);
-    } finally {
-      setRefreshing(false);
-    }
-  }, []);
+export function useProduto(id?: number) {
+  return useQuery({
+    queryKey: produtosKeys.detail(id ?? 0),
+    queryFn: () => getProduto(id as number),
+    enabled: typeof id === 'number' && !Number.isNaN(id),
+  });
+}
 
-  const remove = useCallback(async (id: number) => {
-    try {
-      await deleteProduto(id);
-      setProdutos((prev) => prev.filter((produto) => produto.id !== id));
-    } catch (e: any) {
-      alerta('Erro ao excluir', e.message);
-    }
-  }, []);
+export function useSalvarProduto() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, input }: { id?: number; input: ProdutoInput }) =>
+      id ? updateProduto(id, input) : createProduto(input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: produtosKeys.all }),
+  });
+}
 
-  return { produtos, loading, refreshing, reload: load, refresh, remove };
+export function useExcluirProduto() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => deleteProduto(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: produtosKeys.all }),
+    onError: (e) => alerta('Erro ao excluir', mensagemErro(e)),
+  });
 }
