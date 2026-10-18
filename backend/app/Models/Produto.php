@@ -10,26 +10,43 @@ class Produto extends Model
     use HasFactory;
 
     /**
+     * Categorias fixas do cardápio.
+     */
+    public const CATEGORIAS = [
+        'Entrada',
+        'Prato Principal',
+        'Sobremesa',
+        'Bebida',
+        'Acompanhamento',
+    ];
+
+    /**
      * Atributos preenchíveis em massa.
      */
     protected $fillable = [
         'nome',
         'preco',
+        'preco_promocional',
         'foto_path',
         'descricao',
-        'quantidade_estoque',
-        'data_validade',
+        'ingredientes',
+        'alergenicos',
+        'porcao',
+        'disponivel',
+        'promocao_fim',
         'categoria',
     ];
 
     protected $casts = [
         'preco' => 'decimal:2',
-        'quantidade_estoque' => 'integer',
-        'data_validade' => 'date',
+        'preco_promocional' => 'decimal:2',
+        'porcao' => 'integer',
+        'disponivel' => 'boolean',
+        'promocao_fim' => 'date',
     ];
 
     protected $attributes = [
-        'quantidade_estoque' => 0,
+        'disponivel' => true,
     ];
 
     /**

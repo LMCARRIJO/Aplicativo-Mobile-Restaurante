@@ -1,7 +1,8 @@
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback } from 'react';
-import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
 import { Botao } from '@/shared/components/Botao';
+import { ModalConfirmacao } from '@/shared/components/ModalConfirmacao';
 import { ProdutoCard } from '../components/ProdutoCard';
 import { useProdutos } from '../hooks/useProdutos';
 import { API_URL } from '../services/produtosApi';
@@ -9,6 +10,7 @@ import { Produto } from '../types/Produto';
 
 export default function ProdutosScreen() {
   const { produtos, loading, refreshing, reload, refresh, remove } = useProdutos();
+  const [produtoParaExcluir, setProdutoParaExcluir] = useState<Produto | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -17,10 +19,14 @@ export default function ProdutosScreen() {
   );
 
   const confirmarExclusao = (produto: Produto) => {
-    Alert.alert('Excluir produto', `Deseja excluir "${produto.nome}"?`, [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Excluir', style: 'destructive', onPress: () => remove(produto.id) },
-    ]);
+    setProdutoParaExcluir(produto);
+  };
+
+  const excluir = () => {
+    if (!produtoParaExcluir) return;
+    const id = produtoParaExcluir.id;
+    setProdutoParaExcluir(null);
+    remove(id);
   };
 
   return (
@@ -52,6 +58,19 @@ export default function ProdutosScreen() {
           }
         />
       )}
+
+      <ModalConfirmacao
+        visible={produtoParaExcluir !== null}
+        titulo="Excluir produto"
+        mensagem={
+          produtoParaExcluir
+            ? `Deseja excluir "${produtoParaExcluir.nome}"?`
+            : ''
+        }
+        textoConfirmar="Excluir"
+        onConfirmar={excluir}
+        onCancelar={() => setProdutoParaExcluir(null)}
+      />
     </View>
   );
 }

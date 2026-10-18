@@ -8,6 +8,16 @@ import { PaginatedProdutos, Produto, ProdutoInput } from '../types/Produto';
 export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://10.0.2.2:8000/api';
 // Android emulator: 10.0.2.2, iOS simulator: http://localhost:8000/api, device físico: IP local
 
+/**
+ * Monta a URL pública da foto a partir do caminho salvo no backend.
+ * Usa a origem da API, então funciona no Codespace, emulador e device físico.
+ */
+export function urlFoto(fotoPath?: string | null): string | null {
+  if (!fotoPath) return null;
+  const origem = API_URL.replace(/\/api\/?$/, '');
+  return `${origem}/storage/${fotoPath.replace(/^\/+/, '')}`;
+}
+
 export async function listProdutos(): Promise<Produto[]> {
   const todos: Produto[] = [];
   let page = 1;
@@ -37,17 +47,25 @@ function montarFormData(data: ProdutoInput): FormData {
   const form = new FormData();
   form.append('nome', data.nome);
   form.append('preco', data.preco);
-  if (data.descricao) form.append('descricao', data.descricao);
-  if (data.quantidade_estoque) form.append('quantidade_estoque', data.quantidade_estoque);
-  if (data.data_validade) form.append('data_validade', data.data_validade);
-  if (data.categoria) form.append('categoria', data.categoria);
-  if (data.fotoUri) {
-    const filename = data.fotoUri.split('/').pop() ?? 'foto.jpg';
-    const ext = filename.split('.').pop() ?? 'jpg';
+  form.append('preco_promocional', data.preco_promocional ?? '');
+  form.append('descricao', data.descricao ?? '');
+  form.append('ingredientes', data.ingredientes ?? '');
+  form.append('alergenicos', data.alergenicos ?? '');
+  form.append('porcao', data.porcao ?? '');
+  form.append('disponivel', data.disponivel ? '1' : '0');
+  form.append('promocao_fim', data.promocao_fim ?? '');
+  form.append('categoria', data.categoria ?? '');
+  if (data.fotoFile) {
+    // Web: o expo-image-picker entrega um File real, que o FormData do navegador aceita.
+    form.append('foto', data.fotoFile);
+  } else if (data.fotoUri) {
+    // Nativo: React Native entende o objeto { uri, name, type }.
+    const nomeBruto = data.fotoName ?? data.fotoUri.split('/').pop() ?? 'foto.jpg';
+    const nome = /\.[a-z0-9]+$/i.test(nomeBruto) ? nomeBruto : `${nomeBruto}.jpg`;
     form.append('foto', {
       uri: data.fotoUri,
-      name: filename,
-      type: `image/${ext}`,
+      name: nome,
+      type: data.fotoType ?? 'image/jpeg',
     } as any);
   }
   return form;

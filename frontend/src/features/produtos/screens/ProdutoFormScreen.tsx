@@ -1,8 +1,9 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { alerta } from '@/shared/utils/dialogos';
 import { ProdutoForm } from '../components/ProdutoForm';
-import { createProduto, getProduto, updateProduto } from '../services/produtosApi';
+import { createProduto, getProduto, updateProduto, urlFoto } from '../services/produtosApi';
 import { Produto, ProdutoInput } from '../types/Produto';
 
 export default function ProdutoFormScreen() {
@@ -19,7 +20,7 @@ export default function ProdutoFormScreen() {
       try {
         setProduto(await getProduto(Number(id)));
       } catch (e: any) {
-        Alert.alert('Erro', e.message);
+        alerta('Erro', e.message);
       } finally {
         setCarregando(false);
       }
@@ -34,13 +35,10 @@ export default function ProdutoFormScreen() {
       } else {
         await createProduto(data);
       }
-      Alert.alert(
-        'Sucesso',
-        editando ? 'Produto atualizado.' : 'Produto criado.',
-        [{ text: 'OK', onPress: () => router.back() }],
-      );
+      await alerta('Sucesso', editando ? 'Produto atualizado.' : 'Produto criado.');
+      router.back();
     } catch (e: any) {
-      Alert.alert('Erro ao salvar', e.message);
+      alerta('Erro ao salvar', e.message);
     } finally {
       setSalvando(false);
     }
@@ -62,15 +60,18 @@ export default function ProdutoFormScreen() {
             ? {
                 nome: produto.nome,
                 preco: produto.preco,
+                preco_promocional: produto.preco_promocional ?? '',
                 descricao: produto.descricao ?? '',
-                quantidade_estoque:
-                  produto.quantidade_estoque != null ? String(produto.quantidade_estoque) : '',
-                data_validade: produto.data_validade ?? '',
+                ingredientes: produto.ingredientes ?? '',
+                alergenicos: produto.alergenicos ?? '',
+                porcao: produto.porcao != null ? String(produto.porcao) : '',
+                disponivel: produto.disponivel,
+                promocao_fim: produto.promocao_fim ?? '',
                 categoria: produto.categoria ?? '',
               }
             : undefined
         }
-        fotoAtualUrl={produto?.foto_url ?? null}
+        fotoAtualUrl={urlFoto(produto?.foto_path ?? null)}
         submitting={salvando}
         submitLabel={editando ? 'Salvar alterações' : 'Criar produto'}
         onSubmit={handleSubmit}

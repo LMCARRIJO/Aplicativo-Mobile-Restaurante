@@ -7,7 +7,7 @@ Restaurante-Mobile/
   frontend/ # Expo Router + TypeScript (feature-driven)
 ```
 
-## Backend - 7 atributos (OO)
+## Backend - cardápio (OO)
 - `backend/app/Models/Produto.php:1` - Model com `HasFactory`, casts, accessor `foto_url`
 - `backend/app/Services/ProdutoService.php:1` - Service layer (SOLID, upload/storage)
 - `backend/app/Http/Requests/StoreProdutoRequest.php:1` / `UpdateProdutoRequest.php:1` - validação
@@ -15,10 +15,11 @@ Restaurante-Mobile/
 - `backend/app/Http/Controllers/Api/ProdutoController.php:1` - CRUD magro, `per_page` no index
 - `backend/routes/api.php:1` - `apiResource('produtos')`
 - `backend/database/migrations/2026_09_20_173920_create_produtos_table.php:1` - 3 campos base
-- `backend/database/migrations/2026_10_17_202211_add_campos_restantes_to_produtos_table.php:1` - +4 campos
+- `backend/database/migrations/2026_10_17_202211_add_campos_restantes_to_produtos_table.php:1` - campos iniciais
+- `backend/database/migrations/2026_10_18_000000_add_campos_cardapio_to_produtos_table.php:1` - campos do cardápio (remove estoque/validade)
 - Foto: `storage/app/public/produtos` + `php artisan storage:link` (garanta que `public/storage` seja symlink)
 
-Atributos: `nome` (string), `preco` (decimal), `foto_path` (foto), `descricao` (text), `quantidade_estoque` (integer), `data_validade` (date), `categoria` (string)
+Atributos: `nome` (string), `preco` (decimal), `preco_promocional` (decimal), `foto_path` (foto), `descricao` (text), `ingredientes` (text), `alergenicos` (string), `porcao` (integer), `disponivel` (boolean), `promocao_fim` (date), `categoria` (string fixa)
 
 ## Rodar Backend
 ```bash
@@ -35,31 +36,53 @@ php artisan test --filter=ProdutoApiTest
 
 Endpoints:
 - `GET http://localhost:8000/api/produtos?page=1&per_page=15`
-- `POST http://localhost:8000/api/produtos` multipart `nome, preco, descricao, quantidade_estoque, data_validade, categoria, foto`
+- `POST http://localhost:8000/api/produtos` multipart `nome, preco, preco_promocional, descricao, ingredientes, alergenicos, porcao, disponivel, promocao_fim, categoria, foto`
 - `GET/PUT/DELETE http://localhost:8000/api/produtos/{id}`
 
 ## Frontend (Expo Router + feature-driven)
 ```bash
 cd frontend
 npm install
-# Ajuste IP em src/features/produtos/services/produtosApi.ts ou .env
-# EXPO_PUBLIC_API_URL=http://192.168.0.XX:8000/api
+# Configure a URL da API em frontend/.env (veja opções abaixo e .env.example)
+# EXPO_PUBLIC_API_URL=...
 npm start
 ```
+
+### Configurar `EXPO_PUBLIC_API_URL`
+A URL depende de onde o backend roda em relação ao emulador/dispositivo (o valor
+padrão do código é `http://10.0.2.2:8000/api`, que só funciona se backend e
+emulador estiverem na MESMA máquina):
+
+- **Backend no GitHub Codespace, app/emulador na sua máquina** (ex.: URL pública
+  `https://<codespace>-8000.app.github.dev/api`):
+  ```bash
+  gh codespace ports visibility 8000:public --codespace <codespace-name>
+  # frontend/.env
+  EXPO_PUBLIC_API_URL=https://<codespace-name>-8000.app.github.dev/api
+  ```
+- **Emulador Android local com backend local**: `http://10.0.2.2:8000/api`
+- **iOS simulator local com backend local**: `http://localhost:8000/api`
+- **Device físico**: `http://<IP-LOCAL-DA-MAQUINA>:8000/api`
+
+Após mudar o `.env`, reinicie o Expo com `npx expo start --clear` (variáveis
+`EXPO_PUBLIC_*` são embutidas no bundle em tempo de build).
 Estrutura por funcionalidade:
 - `frontend/src/app/` - rotas do Expo Router (`index`, `produto/novo`, `produto/[id]`)
 - `frontend/src/features/produtos/` - `components/`, `hooks/`, `services/`, `types/`, `screens/`
-- `frontend/src/shared/` - `components/` (Botao, Campo) e `utils/` (format)
+- `frontend/src/shared/` - `components/` (Botao, Campo, ModalConfirmacao, ModalAviso, AvisoProvider, SeletorChips) e `utils/` (format, dialogos)
 
 `src/features/produtos/services/produtosApi.ts:1` centraliza o fetch (pagina todas as páginas); as telas ficam em `screens/` e as rotas apenas as importam.
 
 Fluxos do CRUD:
-- **Inserir**: botão "Novo produto" → form com os 7 campos + foto (`expo-image-picker`) → `POST /api/produtos` (multipart); lista recarrega ao voltar.
+- **Inserir**: botão "Novo produto" → form do cardápio (categoria e alergênicos em chips, disponibilidade em `Switch`, promoção) + foto (`expo-image-picker`) → `POST /api/produtos` (multipart); lista recarrega ao voltar.
 - **Editar**: toque em "Editar" → `POST` multipart com `_method=PUT` (troca foto inclusive).
-- **Excluir**: botão "Excluir" com confirmação (`Alert`) → `DELETE /api/produtos/{id}`.
+- **Excluir**: botão "Excluir" com confirmação no modal do app (`ModalConfirmacao`) → `DELETE /api/produtos/{id}`.
+- **Feedback**: avisos de sucesso/erro/validação aparecem no modal do app (`ModalAviso`/`AvisoProvider`), sem `window.alert`; a foto é exibida via `urlFoto(foto_path)` a partir da origem da API.
 
 ## Tipos cobertos
-- numbers: `preco` decimal, `quantidade_estoque` integer
-- strings: `nome`, `descricao`, `categoria`
-- datas: `data_validade` date + `created_at`
+- numbers: `preco`/`preco_promocional` decimal, `porcao` integer
+- strings: `nome`, `categoria`, `alergenicos`
+- textos: `descricao`, `ingredientes`
+- datas: `promocao_fim` date + `created_at`
+- booleano: `disponivel`
 - foto: `foto_path` upload image max 2MB

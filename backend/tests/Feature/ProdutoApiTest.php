@@ -15,23 +15,32 @@ class ProdutoApiTest extends TestCase
     {
         Storage::fake('public');
 
+        $promocaoFim = now()->addMonth()->format('Y-m-d');
+
         // CREATE - multipart precisa de post() não postJson
         $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==');
         $foto = UploadedFile::fake()->createWithContent('prato.png', $png);
         $res = $this->post('/api/produtos', [
             'nome' => 'Moqueca Baiana',
             'preco' => 49.90,
+            'preco_promocional' => 39.90,
             'descricao' => 'Prato típico da Bahia',
-            'quantidade_estoque' => 8,
-            'data_validade' => now()->addMonth()->format('Y-m-d'),
+            'ingredientes' => 'Peixe, leite de coco, azeite de dendê',
+            'alergenicos' => 'Frutos do mar, Lactose',
+            'porcao' => 2,
+            'disponivel' => true,
+            'promocao_fim' => $promocaoFim,
             'categoria' => 'Prato Principal',
             'foto' => $foto,
         ]);
         $res->assertCreated()
             ->assertJsonPath('data.descricao', 'Prato típico da Bahia')
-            ->assertJsonPath('data.quantidade_estoque', 8)
-            ->assertJsonPath('data.categoria', 'Prato Principal')
-            ->assertJsonPath('data.data_validade', now()->addMonth()->format('Y-m-d'));
+            ->assertJsonPath('data.ingredientes', 'Peixe, leite de coco, azeite de dendê')
+            ->assertJsonPath('data.alergenicos', 'Frutos do mar, Lactose')
+            ->assertJsonPath('data.porcao', 2)
+            ->assertJsonPath('data.disponivel', true)
+            ->assertJsonPath('data.promocao_fim', $promocaoFim)
+            ->assertJsonPath('data.categoria', 'Prato Principal');
         $id = $res->json('data.id');
 
         // LIST
@@ -44,13 +53,17 @@ class ProdutoApiTest extends TestCase
         $this->putJson("/api/produtos/{$id}", [
             'nome' => 'Moqueca Premium',
             'preco' => 59.90,
-            'quantidade_estoque' => 12,
-            'categoria' => 'Especial',
+            'preco_promocional' => 49.90,
+            'porcao' => 4,
+            'disponivel' => false,
+            'categoria' => 'Entrada',
         ])
             ->assertOk()
             ->assertJsonPath('data.nome', 'Moqueca Premium')
-            ->assertJsonPath('data.quantidade_estoque', 12)
-            ->assertJsonPath('data.categoria', 'Especial');
+            ->assertJsonPath('data.porcao', 4)
+            ->assertJsonPath('data.disponivel', false)
+            ->assertJsonPath('data.preco_promocional', '49.90')
+            ->assertJsonPath('data.categoria', 'Entrada');
 
         // DELETE
         $this->deleteJson("/api/produtos/{$id}")->assertNoContent();
@@ -63,8 +76,9 @@ class ProdutoApiTest extends TestCase
 
         $this->postJson('/api/produtos', ['nome' => 'Água', 'preco' => 5.50])
             ->assertCreated()
-            ->assertJsonPath('data.quantidade_estoque', 0)
-            ->assertJsonPath('data.descricao', null);
+            ->assertJsonPath('data.porcao', null)
+            ->assertJsonPath('data.descricao', null)
+            ->assertJsonPath('data.disponivel', true);
     }
 
     public function test_validacao_nome_preco(): void
@@ -77,8 +91,12 @@ class ProdutoApiTest extends TestCase
         $this->postJson('/api/produtos', [
             'nome' => 'Teste',
             'preco' => 10,
-            'quantidade_estoque' => -1,
-            'data_validade' => now()->subDay()->format('Y-m-d'),
-        ])->assertStatus(422)->assertJsonValidationErrors(['quantidade_estoque', 'data_validade']);
+            'preco_promocional' => -1,
+            'porcao' => 0,
+            'categoria' => 'Inexistente',
+            'promocao_fim' => 'data-invalida',
+        ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['preco_promocional', 'porcao', 'categoria', 'promocao_fim']);
     }
 }

@@ -2,11 +2,15 @@ export interface Produto {
   id: number;
   nome: string;
   preco: string; // decimal:2 vem como string do Laravel
+  preco_promocional?: string | null;
   foto_path: string | null;
   foto_url: string | null;
   descricao?: string | null;
-  quantidade_estoque?: number;
-  data_validade?: string | null; // Y-m-d
+  ingredientes?: string | null;
+  alergenicos?: string | null; // lista separada por vírgula
+  porcao?: number | null; // quantas pessoas a porção serve
+  disponivel: boolean;
+  promocao_fim?: string | null; // Y-m-d
   categoria?: string | null;
   created_at: string;
   updated_at: string;
@@ -21,9 +25,16 @@ export interface PaginatedProdutos {
 export interface ProdutoInput {
   nome: string;
   preco: string;
+  preco_promocional?: string;
   descricao?: string;
-  quantidade_estoque?: string;
-  data_validade?: string;
+  ingredientes?: string;
+  alergenicos?: string; // lista separada por vírgula
+  porcao?: string;
+  disponivel: boolean;
+  promocao_fim?: string;
   categoria?: string;
   fotoUri?: string;
+  fotoFile?: File; // web: File real retornado pelo expo-image-picker
+  fotoName?: string;
+  fotoType?: string;
 }
