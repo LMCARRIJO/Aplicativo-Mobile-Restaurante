@@ -19,9 +19,22 @@ class ProdutoController extends Controller
     public function index(Request $request): JsonResponse
     {
         $perPage = max(1, min((int) $request->input('per_page', 15), 100));
-        $produtos = $this->service->listAll($perPage);
+        $filters = [
+            'search' => $request->query('search'),
+            'categoria' => $request->query('categoria'),
+            'order' => $request->query('order'),
+        ];
+        $produtos = $this->service->listAll($filters, $perPage);
 
         return ProdutoResource::collection($produtos)->response();
+    }
+
+    /**
+     * Lista as categorias já cadastradas, para alimentar o filtro no app.
+     */
+    public function categorias(): JsonResponse
+    {
+        return response()->json(['data' => $this->service->categorias()]);
     }
 
     public function store(StoreProdutoRequest $request): JsonResponse
@@ -44,7 +57,8 @@ class ProdutoController extends Controller
         $updated = $this->service->update(
             $produto,
             $request->validated(),
-            $request->file('foto')
+            $request->file('foto'),
+            $request->boolean('remover_foto'),
         );
 
         return new ProdutoResource($updated);
