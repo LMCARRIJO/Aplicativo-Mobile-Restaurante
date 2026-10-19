@@ -5,13 +5,13 @@ import { Botao } from '@/shared/components/Botao';
 import { ModalConfirmacao } from '@/shared/components/ModalConfirmacao';
 import { useTheme, type Cores } from '@/shared/theme';
 import { alerta } from '@/shared/utils/dialogos';
-import { formatarPreco } from '@/shared/utils/format';
+import { formatarPreco, tempoDecorrido } from '@/shared/utils/format';
 import type { Produto } from '@/features/produtos/types/Produto';
 import { LinhaItemComanda } from '../components/LinhaItemComanda';
 import { ModalItemComanda } from '../components/ModalItemComanda';
 import { ModalSeletorProduto } from '../components/ModalSeletorProduto';
 import { StatusBadge } from '../components/StatusBadge';
-import { DESCRICAO_STATUS, tempoDecorrido } from '../constants';
+import { DESCRICAO_STATUS } from '../constants';
 import {
   useAbrirComanda,
   useEnviarComanda,

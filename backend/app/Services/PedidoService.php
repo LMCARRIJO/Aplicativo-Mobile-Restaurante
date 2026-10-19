@@ -111,7 +111,7 @@ class PedidoService
             throw new RegraNegocioException('Adicione ao menos um item antes de enviar a comanda.');
         }
 
-        return $this->transicionar($pedido, Pedido::STATUS_EM_PREPARO);
+        return $this->transicionar($pedido, Pedido::STATUS_EM_PREPARO, ['enviado_em' => now()]);
     }
 
     /**
@@ -130,24 +130,31 @@ class PedidoService
             );
         }
 
-        return $this->transicionar($pedido, $novoStatus);
+        // A cozinha terminou: registra o horário em que ficou pronta.
+        $extras = $novoStatus === Pedido::STATUS_PRONTO ? ['pronto_em' => now()] : [];
+
+        return $this->transicionar($pedido, $novoStatus, $extras);
     }
 
     /**
-     * Fila que o sistema da cozinha consome (comandas em preparo, mais antigas primeiro).
+     * Fila que o sistema da cozinha consome: comandas mais antigas primeiro.
+     * `em_preparo` ordena pelo envio, `pronto` pelo momento em que ficou pronta.
      */
-    public function filaCozinha(int $perPage = 15): LengthAwarePaginator
+    public function filaCozinha(string $status = Pedido::STATUS_EM_PREPARO, int $perPage = 15): LengthAwarePaginator
     {
+        $ordenacao = $status === Pedido::STATUS_PRONTO ? 'pronto_em' : 'enviado_em';
+
         return Pedido::query()
-            ->where('status', Pedido::STATUS_EM_PREPARO)
+            ->where('status', $status)
             ->with(self::RELACOES)
-            ->oldest('id')
+            ->orderBy($ordenacao)
+            ->orderBy('id')
             ->paginate($perPage);
     }
 
-    private function transicionar(Pedido $pedido, string $status): Pedido
+    private function transicionar(Pedido $pedido, string $status, array $extras = []): Pedido
     {
-        $pedido->update(['status' => $status]);
+        $pedido->update(['status' => $status, ...$extras]);
 
         return $pedido->refresh()->load(self::RELACOES);
     }

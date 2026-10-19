@@ -22,6 +22,8 @@ export interface Pedido {
   total: string;
   itens: PedidoItem[];
   criado_em: string;
+  enviado_em: string | null; // quando entrou na cozinha
+  pronto_em: string | null; // quando a cozinha terminou
   atualizado_em: string;
 }
 

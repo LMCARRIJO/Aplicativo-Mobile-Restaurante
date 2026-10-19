@@ -38,14 +38,3 @@ export function metaStatus(status: StatusPedido, c: Cores): { bg: string; texto:
 export function statusFinal(status: StatusPedido): boolean {
   return status === 'entregue' || status === 'cancelado';
 }
-
-/** Tempo decorrido desde a abertura, ex.: "12 min". */
-export function tempoDecorrido(desde?: string | null): string {
-  if (!desde) return '';
-  const inicio = new Date(desde).getTime();
-  if (Number.isNaN(inicio)) return '';
-  const minutos = Math.max(0, Math.floor((Date.now() - inicio) / 60000));
-  if (minutos < 60) return `${minutos} min`;
-  const horas = Math.floor(minutos / 60);
-  return `${horas}h${String(minutos % 60).padStart(2, '0')}`;
-}

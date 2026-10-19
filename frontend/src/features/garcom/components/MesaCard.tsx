@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTheme, type Cores } from '@/shared/theme';
-import { formatarPreco } from '@/shared/utils/format';
-import { ROTULO_STATUS, tempoDecorrido } from '../constants';
+import { formatarPreco, tempoDecorrido } from '@/shared/utils/format';
+import { ROTULO_STATUS } from '../constants';
 import type { Mesa } from '../types/Mesa';
 
 interface MesaCardProps {

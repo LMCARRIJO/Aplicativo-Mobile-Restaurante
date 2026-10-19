@@ -47,10 +47,14 @@ class Pedido extends Model
         'status',
         'observacao',
         'total',
+        'enviado_em',
+        'pronto_em',
     ];
 
     protected $casts = [
         'total' => 'decimal:2',
+        'enviado_em' => 'datetime',
+        'pronto_em' => 'datetime',
     ];
 
     protected $attributes = [

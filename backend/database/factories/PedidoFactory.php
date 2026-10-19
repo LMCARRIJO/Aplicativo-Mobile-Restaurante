@@ -23,13 +23,20 @@ class PedidoFactory extends Factory
         ];
     }
 
-    public function emPreparo(): static
+    public function emPreparo(int $minutosAtras = 0): static
     {
-        return $this->state(['status' => Pedido::STATUS_EM_PREPARO]);
+        return $this->state([
+            'status' => Pedido::STATUS_EM_PREPARO,
+            'enviado_em' => now()->subMinutes($minutosAtras),
+        ]);
     }
 
-    public function pronto(): static
+    public function pronto(int $minutosAtras = 0): static
     {
-        return $this->state(['status' => Pedido::STATUS_PRONTO]);
+        return $this->state([
+            'status' => Pedido::STATUS_PRONTO,
+            'enviado_em' => now()->subMinutes($minutosAtras + 5),
+            'pronto_em' => now()->subMinutes($minutosAtras),
+        ]);
     }
 }

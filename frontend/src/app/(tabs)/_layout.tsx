@@ -24,6 +24,13 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="cozinha"
+        options={{
+          title: 'Cozinha',
+          tabBarIcon: ({ size }) => <Text style={{ fontSize: size ?? 18 }}>🍳</Text>,
+        }}
+      />
+      <Tabs.Screen
         name="cardapio"
         options={{
           title: 'Cardápio',

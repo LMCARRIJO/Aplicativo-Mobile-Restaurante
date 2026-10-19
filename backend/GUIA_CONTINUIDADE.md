@@ -42,12 +42,12 @@ Os campos de cardápio foram adicionados em `database/migrations/2026_10_18_0000
 
 ## Sistema do garçom (mesas e comandas)
 
-Fluxo: o garçom abre a comanda de uma mesa, anota os itens e envia para a cozinha; depois acompanha `em_preparo` → `pronto` → `entregue`. `entregue` e `cancelado` devolvem a mesa para o salão.
+Fluxo: o garçom abre a comanda de uma mesa, anota os itens e envia para a cozinha; depois acompanha `em_preparo` → `pronto` → `entregue`. `entregue` e `cancelado` devolvem a mesa para o salão; `pronto` ainda ocupa (o garçom precisa levar o pedido). O envio grava `enviado_em` e a cozinha, ao marcar pronto, grava `pronto_em`.
 
 | Tabela | Campos |
 | --- | --- |
 | `mesas` | `numero` (único), `capacidade`, `ativa` |
-| `pedidos` | `mesa_id`, `status` (enum), `observacao`, `total` (recalculado) |
+| `pedidos` | `mesa_id`, `status` (enum), `observacao`, `total` (recalculado), `enviado_em`, `pronto_em` |
 | `pedido_itens` | `pedido_id`, `produto_id` (nullable), `produto_nome`, `quantidade`, `preco_unitario`, `observacao` |
 
 - Status em `app/Models/Pedido.php:1`: `STATUS_ABERTOS`/`STATUS_ATIVOS` e `TRANSICOES` (a transição só acontece se estiver na lista). Uma comanda ativa por mesa (`Mesa::pedidoAtivo()`), validado em `PedidoService::abrir()`.
@@ -55,6 +55,16 @@ Fluxo: o garçom abre a comanda de uma mesa, anota os itens e envia para a cozin
 - Itens só podem ser incluídos/alterados/removidos enquanto a comanda está `aberto` (`PedidoService::garantirComandaAberta()`); o envio exige ao menos um item.
 - `app/Exceptions/RegraNegocioException.php:1` centraliza os erros de regra (409) com `render()` em JSON — não estoura 500.
 - Frontend: `frontend/src/features/garcom/` (telas `MesasScreen`, `ComandaScreen`, `MesaFormScreen`) e as rotas em `frontend/src/app/(tabs)/index.tsx` (aba Mesas), `mesa/[id]`, `mesa/nova`, `mesa/editar/[id]`.
+
+## Sistema da cozinha (painel)
+
+Painel em `frontend/src/features/cozinha/` (aba **Cozinha**, `frontend/src/app/(tabs)/cozinha.tsx`) — não há regra nova no backend além da fila:
+
+- `CozinhaController::fila` aceita `?status=em_preparo` (padrão) ou `?status=pronto` (aguardando retirada); outro valor responde 422. `PedidoService::filaCozinha($status)` ordena por `enviado_em` (ou `pronto_em`, quando `pronto`) e depois por `id` — mais antigas primeiro.
+- A cozinha só avança `em_preparo` → `pronto` (`PATCH /api/pedidos/{id}/status`); entregar e cancelar continuam com o garçom (`TRANSICOES` em `app/Models/Pedido.php:1`).
+- Tempo de espera no cartão: `enviado_em` para as em preparo, `pronto_em` para as prontas (`frontend/src/shared/utils/format.ts` → `tempoDecorrido`). Faixas de urgência em `features/cozinha/constants.ts`: verde até 10 min, âmbar de 10 a 20, vermelho acima de 20.
+- Atualização: React Query com `refetchInterval` de 10s (`features/cozinha/hooks/useCozinha.ts`), recarga ao focar a aba e pull-to-refresh/botão "Atualizar". Ao marcar pronto, o hook invalida `['cozinha']`, `['mesas']` e `['pedidos']`, então o salão reflete na hora.
+- Verificado com `CozinhaApiTest` (6 casos) + teste de ponta a ponta no navegador (fila → marcar pronto → prontas → mesa ainda ocupada).
 
 ## Como testar
 
@@ -70,6 +80,8 @@ curl -X POST "http://localhost:8000/api/pedidos" -H "Content-Type: application/j
 curl -X POST "http://localhost:8000/api/pedidos/1/itens" -H "Content-Type: application/json" -d "{\"produto_id\":1,\"quantidade\":2}"
 curl -X POST "http://localhost:8000/api/pedidos/1/enviar"
 curl "http://localhost:8000/api/cozinha/fila"
+curl "http://localhost:8000/api/cozinha/fila?status=pronto"
+curl -X PATCH "http://localhost:8000/api/pedidos/1/status" -H "Content-Type: application/json" -d "{\"status\":\"pronto\"}"
 ```
 
 ## Endpoints prontos
@@ -87,7 +99,7 @@ curl "http://localhost:8000/api/cozinha/fila"
 - `POST /api/pedidos/{id}/itens`, `PUT|DELETE /api/pedidos/{id}/itens/{item}` - itens (só com a comanda `aberto`)
 - `POST /api/pedidos/{id}/enviar` - manda para a cozinha (precisa de pelo menos um item)
 - `PATCH /api/pedidos/{id}/status` - `em_preparo` | `pronto` | `entregue` | `cancelado`
-- `GET /api/cozinha/fila` - comandas em `em_preparo` mais antigas primeiro
+- `GET /api/cozinha/fila?status=em_preparo|pronto` - fila da cozinha (padrão `em_preparo`), mais antigas primeiro; status inválido → 422
 
 A foto é tratada em `ProdutoService::storeFoto()` com disco `public` (`storage/app/public/produtos`); basta enviar `foto` como image. No app, a inserção e a edição já enviam `fotoUri`.
 
@@ -96,5 +108,5 @@ A foto é tratada em `ProdutoService::storeFoto()` com disco `public` (`storage/
 - Autenticar as rotas com Sanctum (hoje são públicas).
 - Expor no app um botão "Remover foto" na edição (o backend já aceita `remover_foto=true`).
 - Paginação na UI com `onEndReached` em vez de carregar tudo.
-- **Sistema da cozinha** (próximo): consumir `GET /api/cozinha/fila` e avançar com `PATCH /api/pedidos/{id}/status` (`pronto`, `entregue`). Sugestão: painel com polling curto (10s) ou WebSocket, itens com observação em destaque e alerta de comanda nova. O backend já está pronto para isso.
 - Melhorias possíveis no garçom: reabrir/adicionar itens em comanda já enviada, divisão de itens por pessoa, fechamento de conta com pagamento e impressão.
+- Melhorias possíveis na cozinha: alerta sonoro/visual de comanda nova, filtro por categoria de prato no painel e impressão da comanda.
