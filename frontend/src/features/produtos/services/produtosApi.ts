@@ -1,49 +1,8 @@
-import axios from 'axios';
-import { Platform } from 'react-native';
+import { api } from '@/shared/lib/http';
 import { PaginatedProdutos, Produto, ProdutoInput } from '../types/Produto';
 
-/**
- * Resolve a base da API. No Codespaces (web) troca a porta 8081 do Expo pela 8000 do Laravel.
- */
-export function resolverApiUrl(): string {
-  if (process.env.EXPO_PUBLIC_API_URL) return process.env.EXPO_PUBLIC_API_URL;
-  if (Platform.OS === 'web' && typeof window !== 'undefined') {
-    const { protocol, hostname } = window.location;
-    const host = hostname.replace(/-8081\./, '-8000.');
-    return `${protocol}//${host}/api`;
-  }
-  return 'http://10.0.2.2:8000/api';
-}
-
-export const API_URL = resolverApiUrl();
-
-/** URL pública da foto (usa a origem da API; funciona no Codespace, emulador e device). */
-export function urlFoto(fotoPath?: string | null): string | null {
-  if (!fotoPath) return null;
-  const origem = API_URL.replace(/\/api\/?$/, '');
-  return `${origem}/storage/${fotoPath.replace(/^\/+/, '')}`;
-}
-
-const api = axios.create({
-  baseURL: API_URL,
-  headers: { Accept: 'application/json' },
-  timeout: 20000,
-});
-
-/** Extrai a melhor mensagem possível de um erro axios (inclui erros de validação do Laravel). */
-export function mensagemErro(erro: unknown): string {
-  if (axios.isAxiosError(erro)) {
-    const data = erro.response?.data as any;
-    if (data?.errors) {
-      const primeira = Object.values(data.errors)[0];
-      if (Array.isArray(primeira) && primeira[0]) return String(primeira[0]);
-    }
-    if (data?.message) return String(data.message);
-    return erro.message;
-  }
-  if (erro instanceof Error) return erro.message;
-  return 'Erro inesperado.';
-}
+// O cliente HTTP e os helpers de URL/erro são compartilhados (src/shared/lib/http.ts).
+export { API_URL, mensagemErro, resolverApiUrl, urlFoto } from '@/shared/lib/http';
 
 function montarFormData(input: ProdutoInput, comFoto: boolean): FormData {
   const form = new FormData();

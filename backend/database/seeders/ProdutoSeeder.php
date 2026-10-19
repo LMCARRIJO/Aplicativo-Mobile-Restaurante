@@ -9,6 +9,12 @@ class ProdutoSeeder extends Seeder
 {
     public function run(): void
     {
-        Produto::factory()->count(10)->create();
+        Produto::factory()->count(7)->create();
+
+        // Alguns itens com promoção vigente para o cardápio de exemplo.
+        Produto::factory()
+            ->count(3)
+            ->emPromocao(now()->addMonth()->format('Y-m-d'))
+            ->create();
     }
 }

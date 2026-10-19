@@ -56,4 +56,23 @@ class Produto extends Model
     {
         return $this->foto_path ? asset('storage/'.$this->foto_path) : null;
     }
+
+    /**
+     * Preço que vale agora: o promocional enquanto a promoção não venceu,
+     * senão o preço cheio. É esse valor que entra na comanda.
+     */
+    public function precoVigente(): string
+    {
+        $promocional = $this->preco_promocional;
+
+        if ($promocional === null || (float) $promocional <= 0) {
+            return (string) $this->preco;
+        }
+
+        if ($this->promocao_fim !== null && $this->promocao_fim->endOfDay()->isPast()) {
+            return (string) $this->preco;
+        }
+
+        return (string) $promocional;
+    }
 }

@@ -1,6 +1,6 @@
-# Continuidade - cadastro de cardápio pronto
+# Continuidade - cardápio e sistema do garçom prontos
 
-Este backend representa o **cardápio de um restaurante** (pratos e bebidas), com camada OO e cobertura dos tipos exigidos (numbers, strings, dates, foto):
+Este backend representa o **cardápio de um restaurante** (pratos e bebidas) e o **sistema do garçom** (mesas e comandas), com camada OO e cobertura dos tipos exigidos (numbers, strings, dates, foto):
 
 | Atributo | Tipo | Onde |
 | --- | --- | --- |
@@ -30,12 +30,31 @@ Os campos de cardápio foram adicionados em `database/migrations/2026_10_18_0000
 ## Correções aplicadas junto
 
 - `destroy` responde `204` **sem corpo** (`response()->noContent()`).
-- `index` aceita `per_page` (1..100, default 15); o frontend percorre todas as páginas.
+- `index` aceita `per_page` (1..100, default 15), `search` (LIKE em `nome`/`descricao`), `categoria` e `order` (whitelist em `ProdutoService::COLUNAS_ORDENAVEIS`, prefixo `-` = desc; valor inválido cai em `-created_at`). O frontend percorre todas as páginas.
+- `GET /api/produtos/categorias` devolve `Produto::CATEGORIAS` (rota estática registrada antes do `apiResource`).
+- Atualização é **parcial**: `PUT/PATCH` só mexe nos campos enviados. `remover_foto=true` apaga a foto atual; ao trocar a foto, a nova é gravada antes de apagar a antiga.
+- `create`/`update` normalizam strings vazias (`''`/espaços) para `null` nos campos opcionais (trait `NormalizaCamposVazios`).
 - A exclusão usa o modal próprio `frontend/src/shared/components/ModalConfirmacao.tsx` (confirmação dentro do app, sem `window.confirm`), funcionando em web e nativo.
 - Diálogos informativos cross-platform em `frontend/src/shared/utils/dialogos.ts`: `alerta()` delega ao `AvisoProvider` (`frontend/src/shared/components/AvisoProvider.tsx`, montado no `_layout`), que abre o `ModalAviso` dentro do app. Não se usa mais `window.alert` no web.
 - A foto é exibida via `urlFoto(foto_path)` (origem da `API_URL` + `/storage/`) no `ProdutoCard`/`ProdutoFormScreen`. O `foto_url` do backend depende de `APP_URL`, então `http://localhost:8000` não carrega no Codespace/emulador.
 - Edição no app envia multipart com `_method=PUT`, permitindo trocar a foto.
 - Symlink `public/storage` recriado (se ele virar pasta comum no clone, rode `php artisan storage:link`).
+
+## Sistema do garçom (mesas e comandas)
+
+Fluxo: o garçom abre a comanda de uma mesa, anota os itens e envia para a cozinha; depois acompanha `em_preparo` → `pronto` → `entregue`. `entregue` e `cancelado` devolvem a mesa para o salão.
+
+| Tabela | Campos |
+| --- | --- |
+| `mesas` | `numero` (único), `capacidade`, `ativa` |
+| `pedidos` | `mesa_id`, `status` (enum), `observacao`, `total` (recalculado) |
+| `pedido_itens` | `pedido_id`, `produto_id` (nullable), `produto_nome`, `quantidade`, `preco_unitario`, `observacao` |
+
+- Status em `app/Models/Pedido.php:1`: `STATUS_ABERTOS`/`STATUS_ATIVOS` e `TRANSICOES` (a transição só acontece se estiver na lista). Uma comanda ativa por mesa (`Mesa::pedidoAtivo()`), validado em `PedidoService::abrir()`.
+- `pedido_itens` guarda **snapshot** de `produto_nome` e `preco_unitario` (preço vigente, ver `Produto::precoVigente()`), então a comanda continua legível se o prato mudar de preço ou sair do cardápio (`produto_id` fica `null` via `nullOnDelete`).
+- Itens só podem ser incluídos/alterados/removidos enquanto a comanda está `aberto` (`PedidoService::garantirComandaAberta()`); o envio exige ao menos um item.
+- `app/Exceptions/RegraNegocioException.php:1` centraliza os erros de regra (409) com `render()` em JSON — não estoura 500.
+- Frontend: `frontend/src/features/garcom/` (telas `MesasScreen`, `ComandaScreen`, `MesaFormScreen`) e as rotas em `frontend/src/app/(tabs)/index.tsx` (aba Mesas), `mesa/[id]`, `mesa/nova`, `mesa/editar/[id]`.
 
 ## Como testar
 
@@ -44,20 +63,38 @@ php artisan migrate:fresh --seed
 php artisan test
 php artisan serve --host=0.0.0.0 --port=8000
 curl "http://localhost:8000/api/produtos?per_page=100"
+curl "http://localhost:8000/api/produtos?search=moqueca&categoria=Prato%20Principal&order=-preco"
+curl "http://localhost:8000/api/produtos/categorias"
+curl "http://localhost:8000/api/mesas"
+curl -X POST "http://localhost:8000/api/pedidos" -H "Content-Type: application/json" -d "{\"mesa_id\":1}"
+curl -X POST "http://localhost:8000/api/pedidos/1/itens" -H "Content-Type: application/json" -d "{\"produto_id\":1,\"quantidade\":2}"
+curl -X POST "http://localhost:8000/api/pedidos/1/enviar"
+curl "http://localhost:8000/api/cozinha/fila"
 ```
 
 ## Endpoints prontos
 
-- `GET /api/produtos?page=1&per_page=15` - lista paginada
+- `GET /api/produtos?page=1&per_page=15&search=&categoria=&order=` - lista paginada + filtros
+- `GET /api/produtos/categorias` - categorias válidas
 - `POST /api/produtos` - multipart/form-data (campos do cardápio + `foto` image)
 - `GET /api/produtos/{id}`
-- `PUT/PATCH /api/produtos/{id}` - json ou multipart (o app usa `POST` multipart com `_method=PUT`)
+- `PUT/PATCH /api/produtos/{id}` - json ou multipart (o app usa `POST` multipart com `_method=PUT`); parcial, aceita `remover_foto=true`
 - `DELETE /api/produtos/{id}` - `204`
+- `GET /api/mesas?status=livre|ocupada&ativa=1|0` - mesas com `status` calculado e `pedido_ativo`
+- `POST /api/mesas` / `GET|PUT|DELETE /api/mesas/{id}` - CRUD das mesas (delete bloqueado com comanda ativa)
+- `POST /api/pedidos` - abre a comanda (`mesa_id`, `observacao`)
+- `GET /api/pedidos?status=&mesa_id=` / `GET /api/pedidos/{id}` - fila/histórico com itens
+- `POST /api/pedidos/{id}/itens`, `PUT|DELETE /api/pedidos/{id}/itens/{item}` - itens (só com a comanda `aberto`)
+- `POST /api/pedidos/{id}/enviar` - manda para a cozinha (precisa de pelo menos um item)
+- `PATCH /api/pedidos/{id}/status` - `em_preparo` | `pronto` | `entregue` | `cancelado`
+- `GET /api/cozinha/fila` - comandas em `em_preparo` mais antigas primeiro
 
 A foto é tratada em `ProdutoService::storeFoto()` com disco `public` (`storage/app/public/produtos`); basta enviar `foto` como image. No app, a inserção e a edição já enviam `fotoUri`.
 
 ## Próximos passos sugeridos
 
 - Autenticar as rotas com Sanctum (hoje são públicas).
-- Opção de remover a foto existente na edição (hoje só seleciona/troca).
+- Expor no app um botão "Remover foto" na edição (o backend já aceita `remover_foto=true`).
 - Paginação na UI com `onEndReached` em vez de carregar tudo.
+- **Sistema da cozinha** (próximo): consumir `GET /api/cozinha/fila` e avançar com `PATCH /api/pedidos/{id}/status` (`pronto`, `entregue`). Sugestão: painel com polling curto (10s) ou WebSocket, itens com observação em destaque e alerta de comanda nova. O backend já está pronto para isso.
+- Melhorias possíveis no garçom: reabrir/adicionar itens em comanda já enviada, divisão de itens por pessoa, fechamento de conta com pagamento e impressão.

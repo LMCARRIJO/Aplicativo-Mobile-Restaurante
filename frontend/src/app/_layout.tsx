@@ -19,9 +19,12 @@ export default function RootLayout() {
             contentStyle: { backgroundColor: cores.background },
           }}
         >
-          <Stack.Screen name="index" options={{ title: 'Restaurante Mobile' }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="produto/novo" options={{ title: 'Novo produto' }} />
           <Stack.Screen name="produto/[id]" options={{ title: 'Editar produto' }} />
+          <Stack.Screen name="mesa/[id]" options={{ title: 'Comanda' }} />
+          <Stack.Screen name="mesa/nova" options={{ title: 'Nova mesa' }} />
+          <Stack.Screen name="mesa/editar/[id]" options={{ title: 'Editar mesa' }} />
         </Stack>
         <StatusBar style={escuro ? 'light' : 'dark'} />
       </AvisoProvider>

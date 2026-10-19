@@ -23,6 +23,16 @@ export const lightColors = {
   badgeDisponivelTexto: '#166534',
   badgeEsgotadoBg: '#FEE2E2',
   badgeEsgotadoTexto: '#991B1B',
+  statusAbertoBg: '#EFE9E1',
+  statusAbertoTexto: '#5B5047',
+  statusCozinhaBg: '#FEF3C7',
+  statusCozinhaTexto: '#92400E',
+  statusProntoBg: '#DCFCE7',
+  statusProntoTexto: '#166534',
+  statusEntregueBg: '#E0E7FF',
+  statusEntregueTexto: '#3730A3',
+  statusCanceladoBg: '#FEE2E2',
+  statusCanceladoTexto: '#991B1B',
   fotoFundo: '#F1ECE4',
 };
 
@@ -53,6 +63,16 @@ export const darkColors: Cores = {
   badgeDisponivelTexto: '#4ADE80',
   badgeEsgotadoBg: '#3A1D1D',
   badgeEsgotadoTexto: '#F87171',
+  statusAbertoBg: '#2A251F',
+  statusAbertoTexto: '#C9BEB1',
+  statusCozinhaBg: '#3B2F10',
+  statusCozinhaTexto: '#FBBF24',
+  statusProntoBg: '#14321F',
+  statusProntoTexto: '#4ADE80',
+  statusEntregueBg: '#232B4D',
+  statusEntregueTexto: '#A5B4FC',
+  statusCanceladoBg: '#3A1D1D',
+  statusCanceladoTexto: '#F87171',
   fotoFundo: '#26221E',
 };
 
