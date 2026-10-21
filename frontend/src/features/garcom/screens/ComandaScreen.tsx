@@ -49,6 +49,7 @@ export default function ComandaScreen() {
   const [itemRemovendo, setItemRemovendo] = useState<PedidoItem | null>(null);
   const [confirmandoCancelamento, setConfirmandoCancelamento] = useState(false);
   const [confirmandoEnvio, setConfirmandoEnvio] = useState(false);
+  const [confirmandoFechamento, setConfirmandoFechamento] = useState(false);
 
   const { refetch: recarregarMesa } = mesaQuery;
   const { refetch: recarregarPedido } = pedidoQuery;
@@ -170,6 +171,8 @@ export default function ComandaScreen() {
   }
 
   const editavel = pedido?.status === 'aberto';
+  const itensPendentes = pedido?.itens.filter((item) => item.status === 'pendente') ?? [];
+  const temItensEntregues = pedido?.itens.some((item) => item.status === 'entregue') ?? false;
   const abertura = pedido?.criado_em ?? mesa.pedido_ativo?.aberto_em;
 
   return (
@@ -208,7 +211,7 @@ export default function ComandaScreen() {
                 <LinhaItemComanda
                   key={item.id}
                   item={item}
-                  editavel={editavel}
+                  editavel={editavel && item.status === 'pendente'}
                   onEditar={() => setItemEditando(item)}
                   onRemover={() => setItemRemovendo(item)}
                 />
@@ -235,17 +238,19 @@ export default function ComandaScreen() {
           <>
             <Botao title="Adicionar item" onPress={() => setSeletorAberto(true)} />
             <Botao
-              title="Enviar para a cozinha"
+              title={temItensEntregues ? 'Enviar nova rodada' : 'Enviar para a cozinha'}
               variant="secondary"
               loading={enviar.isPending}
-              disabled={pedido.itens.length === 0}
+              disabled={itensPendentes.length === 0}
               onPress={() => setConfirmandoEnvio(true)}
             />
-            <Botao
-              title="Cancelar comanda"
-              variant="danger"
-              onPress={() => setConfirmandoCancelamento(true)}
-            />
+            {temItensEntregues ? null : (
+              <Botao
+                title="Cancelar comanda"
+                variant="danger"
+                onPress={() => setConfirmandoCancelamento(true)}
+              />
+            )}
           </>
         ) : pedido.status === 'em_preparo' ? (
           <>
@@ -254,27 +259,45 @@ export default function ComandaScreen() {
               loading={status.isPending}
               onPress={() => mudarStatus('pronto', 'A comanda está pronta para ser levada à mesa.')}
             />
-            <Botao
-              title="Cancelar comanda"
-              variant="danger"
-              onPress={() => setConfirmandoCancelamento(true)}
-            />
+            {temItensEntregues ? null : (
+              <Botao
+                title="Cancelar comanda"
+                variant="danger"
+                onPress={() => setConfirmandoCancelamento(true)}
+              />
+            )}
           </>
-        ) : (
+        ) : pedido.status === 'pronto' ? (
           <>
             <Botao
               title="Entregar na mesa"
               loading={status.isPending}
               onPress={() =>
-                mudarStatus('entregue', 'Comanda entregue. Esta mesa já está livre para novos pedidos.')
+                mudarStatus('entregue', 'Comanda entregue. A mesa continua ocupada até fechar a conta.')
               }
             />
+            {temItensEntregues ? null : (
+              <Botao
+                title="Cancelar comanda"
+                variant="danger"
+                onPress={() => setConfirmandoCancelamento(true)}
+              />
+            )}
+          </>
+        ) : pedido.status === 'entregue' ? (
+          <>
+            <Botao title="Adicionar nova rodada" onPress={() => setSeletorAberto(true)} />
             <Botao
-              title="Cancelar comanda"
-              variant="danger"
-              onPress={() => setConfirmandoCancelamento(true)}
+              title="Fechar conta"
+              variant="secondary"
+              loading={status.isPending}
+              onPress={() => setConfirmandoFechamento(true)}
             />
           </>
+        ) : (
+          <Text style={estilos.encerrada}>
+            {pedido.status === 'fechado' ? 'Conta fechada. Mesa liberada.' : 'Comanda cancelada. Mesa liberada.'}
+          </Text>
         )}
       </View>
 
@@ -330,6 +353,19 @@ export default function ComandaScreen() {
         }}
         onCancelar={() => setConfirmandoCancelamento(false)}
       />
+
+      <ModalConfirmacao
+        visible={confirmandoFechamento}
+        titulo="Fechar conta"
+        mensagem="A conta será encerrada e a mesa liberada. Deseja continuar?"
+        textoConfirmar="Fechar conta"
+        textoCancelar="Voltar"
+        onConfirmar={() => {
+          setConfirmandoFechamento(false);
+          mudarStatus('fechado', 'Conta fechada. Esta mesa já está livre.');
+        }}
+        onCancelar={() => setConfirmandoFechamento(false)}
+      />
     </View>
   );
 }
@@ -374,6 +410,7 @@ const criarEstilos = (c: Cores) =>
     },
     vazioTitulo: { fontSize: 16, fontWeight: '700', color: c.text, marginBottom: 6 },
     vazioTexto: { fontSize: 13, color: c.muted },
+    encerrada: { textAlign: 'center', fontSize: 13, fontWeight: '600', color: c.muted },
     rodape: {
       padding: 16,
       gap: 8,

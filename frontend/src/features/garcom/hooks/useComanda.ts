@@ -22,6 +22,7 @@ export const comandaKeys = {
 function invalidarComandas(qc: QueryClient) {
   qc.invalidateQueries({ queryKey: ['mesas'] });
   qc.invalidateQueries({ queryKey: comandaKeys.all });
+  qc.invalidateQueries({ queryKey: ['cozinha'] });
 }
 
 export function usePedido(id?: number) {

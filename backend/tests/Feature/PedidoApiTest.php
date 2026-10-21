@@ -180,17 +180,171 @@ class PedidoApiTest extends TestCase
 
         // fluxo feliz
         $this->patchJson("/api/pedidos/{$pedido->id}/status", ['status' => 'em_preparo'])
-            ->assertOk()->assertJsonPath('data.status', 'em_preparo');
+            ->assertOk()
+            ->assertJsonPath('data.status', 'em_preparo')
+            ->assertJsonPath('data.itens.0.status', 'em_preparo');
         $this->patchJson("/api/pedidos/{$pedido->id}/status", ['status' => 'pronto'])
-            ->assertOk()->assertJsonPath('data.status', 'pronto');
+            ->assertOk()
+            ->assertJsonPath('data.status', 'pronto')
+            ->assertJsonPath('data.itens.0.status', 'pronto');
         $this->patchJson("/api/pedidos/{$pedido->id}/status", ['status' => 'entregue'])
-            ->assertOk()->assertJsonPath('data.status', 'entregue');
+            ->assertOk()
+            ->assertJsonPath('data.status', 'entregue')
+            ->assertJsonPath('data.itens.0.status', 'entregue');
 
-        // entregue é status final
+        // entregue mantém a mesa ocupada e não pode ser cancelado
         $this->patchJson("/api/pedidos/{$pedido->id}/status", ['status' => 'cancelado'])->assertStatus(409);
+        $this->getJson("/api/mesas/{$mesa->id}")->assertOk()->assertJsonPath('data.status', 'ocupada');
 
-        // e a mesa foi liberada
+        // fechar a conta libera a mesa
+        $this->patchJson("/api/pedidos/{$pedido->id}/status", ['status' => 'fechado'])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'fechado');
+        $this->assertNotNull($pedido->refresh()->fechado_em);
+
         $this->getJson("/api/mesas/{$mesa->id}")->assertOk()->assertJsonPath('data.status', 'livre');
+    }
+
+    public function test_status_repetido_e_idempotente(): void
+    {
+        [, $pedido] = $this->mesaComComanda();
+        $produto = Produto::factory()->create();
+
+        $this->postJson("/api/pedidos/{$pedido->id}/itens", [
+            'produto_id' => $produto->id,
+            'quantidade' => 1,
+        ])->assertCreated();
+
+        $this->patchJson("/api/pedidos/{$pedido->id}/status", ['status' => 'em_preparo'])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'em_preparo');
+
+        $this->patchJson("/api/pedidos/{$pedido->id}/status", ['status' => 'em_preparo'])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'em_preparo')
+            ->assertJsonPath('data.itens.0.status', 'em_preparo');
+
+        $primeiroPronto = $this->patchJson("/api/pedidos/{$pedido->id}/status", ['status' => 'pronto'])
+            ->assertOk()
+            ->json('data');
+
+        $this->assertNotNull($primeiroPronto['pronto_em']);
+
+        $this->patchJson("/api/pedidos/{$pedido->id}/status", ['status' => 'pronto'])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'pronto')
+            ->assertJsonPath('data.itens.0.status', 'pronto')
+            ->assertJsonPath('data.pronto_em', $primeiroPronto['pronto_em']);
+
+        // transição realmente inválida continua bloqueada
+        $this->patchJson("/api/pedidos/{$pedido->id}/status", ['status' => 'em_preparo'])
+            ->assertStatus(409);
+    }
+
+    public function test_entrega_mantem_mesa_ocupada_e_permite_nova_rodada(): void
+    {
+        $mesa = Mesa::factory()->create(['numero' => 4]);
+        $feijoada = Produto::factory()->create(['nome' => 'Feijoada', 'preco' => 35.50]);
+        $pudim = Produto::factory()->create(['nome' => 'Pudim', 'preco' => 10]);
+
+        $pedidoId = $this->postJson('/api/pedidos', ['mesa_id' => $mesa->id])
+            ->assertCreated()
+            ->json('data.id');
+
+        $this->postJson("/api/pedidos/{$pedidoId}/itens", [
+            'produto_id' => $feijoada->id,
+            'quantidade' => 1,
+        ])->assertCreated()->assertJsonPath('data.status', 'pendente');
+
+        $this->postJson("/api/pedidos/{$pedidoId}/enviar")->assertOk();
+        $this->patchJson("/api/pedidos/{$pedidoId}/status", ['status' => 'pronto'])->assertOk();
+        $this->patchJson("/api/pedidos/{$pedidoId}/status", ['status' => 'entregue'])->assertOk();
+
+        $this->getJson("/api/mesas/{$mesa->id}")->assertOk()->assertJsonPath('data.status', 'ocupada');
+
+        // nova rodada reabre a comanda sem apagar o item já entregue
+        $this->postJson("/api/pedidos/{$pedidoId}/itens", [
+            'produto_id' => $pudim->id,
+            'quantidade' => 1,
+        ])->assertCreated()->assertJsonPath('data.status', 'pendente');
+
+        $this->getJson("/api/pedidos/{$pedidoId}")
+            ->assertOk()
+            ->assertJsonPath('data.status', 'aberto')
+            ->assertJsonPath('data.total', '45.50')
+            ->assertJsonPath('data.itens.0.status', 'entregue')
+            ->assertJsonPath('data.itens.1.status', 'pendente');
+
+        // a cozinha recebe somente a nova rodada
+        $this->postJson("/api/pedidos/{$pedidoId}/enviar")->assertOk();
+
+        $this->getJson('/api/cozinha/fila')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $pedidoId)
+            ->assertJsonCount(1, 'data.0.itens')
+            ->assertJsonPath('data.0.itens.0.produto_nome', 'Pudim')
+            ->assertJsonPath('data.0.total', '45.50');
+
+        $this->patchJson("/api/pedidos/{$pedidoId}/status", ['status' => 'pronto'])->assertOk();
+        $this->patchJson("/api/pedidos/{$pedidoId}/status", ['status' => 'entregue'])->assertOk();
+
+        $this->getJson("/api/mesas/{$mesa->id}")->assertOk()->assertJsonPath('data.status', 'ocupada');
+
+        $this->patchJson("/api/pedidos/{$pedidoId}/status", ['status' => 'fechado'])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'fechado');
+
+        $this->getJson("/api/mesas/{$mesa->id}")->assertOk()->assertJsonPath('data.status', 'livre');
+        $this->postJson('/api/pedidos', ['mesa_id' => $mesa->id])->assertCreated();
+    }
+
+    public function test_nao_fecha_conta_antes_da_entrega(): void
+    {
+        [, $pedido] = $this->mesaComComanda();
+
+        $this->patchJson("/api/pedidos/{$pedido->id}/status", ['status' => 'fechado'])
+            ->assertStatus(409);
+    }
+
+    public function test_nao_cancela_conta_com_itens_entregues(): void
+    {
+        $mesa = Mesa::factory()->create();
+        $pedido = Pedido::factory()->entregue()->create(['mesa_id' => $mesa->id]);
+        $pedido->itens()->create([
+            'produto_id' => null,
+            'produto_nome' => 'Feijoada',
+            'quantidade' => 1,
+            'preco_unitario' => 35.50,
+            'status' => 'entregue',
+        ]);
+
+        $this->patchJson("/api/pedidos/{$pedido->id}/status", ['status' => 'cancelado'])
+            ->assertStatus(409);
+    }
+
+    public function test_item_entregue_nao_pode_ser_editado_ou_removido(): void
+    {
+        $mesa = Mesa::factory()->create();
+        $pedido = Pedido::factory()->entregue()->create(['mesa_id' => $mesa->id]);
+        $entregue = $pedido->itens()->create([
+            'produto_id' => null,
+            'produto_nome' => 'Feijoada',
+            'quantidade' => 1,
+            'preco_unitario' => 35.50,
+            'status' => 'entregue',
+        ]);
+        $produto = Produto::factory()->create();
+
+        $this->postJson("/api/pedidos/{$pedido->id}/itens", [
+            'produto_id' => $produto->id,
+            'quantidade' => 1,
+        ])->assertCreated();
+
+        $this->putJson("/api/pedidos/{$pedido->id}/itens/{$entregue->id}", ['quantidade' => 2])
+            ->assertStatus(409);
+        $this->deleteJson("/api/pedidos/{$pedido->id}/itens/{$entregue->id}")
+            ->assertStatus(409);
     }
 
     public function test_cancela_comanda_e_libera_a_mesa(): void

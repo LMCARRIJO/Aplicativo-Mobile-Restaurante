@@ -3,11 +3,12 @@
 namespace Database\Factories;
 
 use App\Models\Pedido;
+use App\Models\PedidoItem;
 use App\Models\Produto;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends Factory<\App\Models\PedidoItem>
+ * @extends Factory<PedidoItem>
  */
 class PedidoItemFactory extends Factory
 {
@@ -20,6 +21,7 @@ class PedidoItemFactory extends Factory
             'quantidade' => fake()->numberBetween(1, 3),
             'preco_unitario' => fake()->randomFloat(2, 5, 100),
             'observacao' => null,
+            'status' => 'pendente',
         ];
     }
 }

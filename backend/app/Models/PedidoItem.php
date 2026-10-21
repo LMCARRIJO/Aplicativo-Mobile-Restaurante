@@ -10,6 +10,16 @@ class PedidoItem extends Model
 {
     use HasFactory;
 
+    public const STATUS_PENDENTE = 'pendente';
+
+    public const STATUS_EM_PREPARO = 'em_preparo';
+
+    public const STATUS_PRONTO = 'pronto';
+
+    public const STATUS_ENTREGUE = 'entregue';
+
+    public const STATUS_CANCELADO = 'cancelado';
+
     /**
      * O plural em português ("itens") não é o que o Eloquent infere ("items").
      */
@@ -22,6 +32,7 @@ class PedidoItem extends Model
         'quantidade',
         'preco_unitario',
         'observacao',
+        'status',
     ];
 
     protected $casts = [

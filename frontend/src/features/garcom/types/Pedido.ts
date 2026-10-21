@@ -1,4 +1,6 @@
-export type StatusPedido = 'aberto' | 'em_preparo' | 'pronto' | 'entregue' | 'cancelado';
+export type StatusPedido = 'aberto' | 'em_preparo' | 'pronto' | 'entregue' | 'fechado' | 'cancelado';
+
+export type StatusItem = 'pendente' | 'em_preparo' | 'pronto' | 'entregue' | 'cancelado';
 
 export interface PedidoItem {
   id: number;
@@ -9,6 +11,7 @@ export interface PedidoItem {
   preco_unitario: string; // decimal:2 vem como string do Laravel
   subtotal: string;
   observacao: string | null;
+  status: StatusItem;
   created_at: string;
   updated_at: string;
 }
@@ -24,6 +27,7 @@ export interface Pedido {
   criado_em: string;
   enviado_em: string | null; // quando entrou na cozinha
   pronto_em: string | null; // quando a cozinha terminou
+  fechado_em: string | null;
   atualizado_em: string;
 }
 

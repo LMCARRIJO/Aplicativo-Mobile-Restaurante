@@ -43,7 +43,7 @@ class Mesa extends Model
     }
 
     /**
-     * Comanda que ainda ocupa a mesa (aberta, na cozinha ou pronta para servir).
+     * Comanda que ainda ocupa a mesa (aberta, na cozinha, pronta ou entregue).
      */
     public function pedidoAtivo(): HasOne
     {

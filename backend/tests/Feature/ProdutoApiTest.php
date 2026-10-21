@@ -177,7 +177,7 @@ class ProdutoApiTest extends TestCase
             'preco' => 10,
             'descricao' => 'Descrição original',
             'categoria' => 'Bebida',
-            'quantidade_estoque' => 5,
+            'porcao' => 5,
         ]);
 
         $this->patchJson("/api/produtos/{$produto->id}", ['preco' => 25.50])
@@ -186,7 +186,7 @@ class ProdutoApiTest extends TestCase
             ->assertJsonPath('data.nome', 'Original')
             ->assertJsonPath('data.descricao', 'Descrição original')
             ->assertJsonPath('data.categoria', 'Bebida')
-            ->assertJsonPath('data.quantidade_estoque', 5);
+            ->assertJsonPath('data.porcao', 5);
     }
 
     public function test_atualizacao_substitui_foto_antiga(): void

@@ -7,6 +7,7 @@ export const ROTULO_STATUS: Record<StatusPedido, string> = {
   em_preparo: 'Na cozinha',
   pronto: 'Pronto',
   entregue: 'Entregue',
+  fechado: 'Fechada',
   cancelado: 'Cancelada',
 };
 
@@ -15,7 +16,8 @@ export const DESCRICAO_STATUS: Record<StatusPedido, string> = {
   aberto: 'Anote os itens e envie para a cozinha.',
   em_preparo: 'A cozinha está preparando esta comanda.',
   pronto: 'Pronto para levar até a mesa.',
-  entregue: 'Comanda entregue. A mesa está livre.',
+  entregue: 'Comanda entregue. A mesa continua ocupada até fechar a conta.',
+  fechado: 'Conta fechada. A mesa está livre.',
   cancelado: 'Comanda cancelada. A mesa está livre.',
 };
 
@@ -27,6 +29,8 @@ export function metaStatus(status: StatusPedido, c: Cores): { bg: string; texto:
       return { bg: c.statusProntoBg, texto: c.statusProntoTexto };
     case 'entregue':
       return { bg: c.statusEntregueBg, texto: c.statusEntregueTexto };
+    case 'fechado':
+      return { bg: c.statusFechadoBg, texto: c.statusFechadoTexto };
     case 'cancelado':
       return { bg: c.statusCanceladoBg, texto: c.statusCanceladoTexto };
     default:
@@ -34,7 +38,7 @@ export function metaStatus(status: StatusPedido, c: Cores): { bg: string; texto:
   }
 }
 
-/** Uma comanda entregue ou cancelada não ocupa mais a mesa. */
+/** Uma conta fechada ou cancelada não ocupa mais a mesa. */
 export function statusFinal(status: StatusPedido): boolean {
-  return status === 'entregue' || status === 'cancelado';
+  return status === 'fechado' || status === 'cancelado';
 }

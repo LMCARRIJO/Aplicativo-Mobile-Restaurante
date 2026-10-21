@@ -22,6 +22,7 @@ class AtualizarStatusPedidoRequest extends FormRequest
                     Pedido::STATUS_EM_PREPARO,
                     Pedido::STATUS_PRONTO,
                     Pedido::STATUS_ENTREGUE,
+                    Pedido::STATUS_FECHADO,
                     Pedido::STATUS_CANCELADO,
                 ]),
             ],

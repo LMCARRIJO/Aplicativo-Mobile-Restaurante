@@ -39,4 +39,19 @@ class PedidoFactory extends Factory
             'pronto_em' => now()->subMinutes($minutosAtras),
         ]);
     }
+
+    public function entregue(): static
+    {
+        return $this->state([
+            'status' => Pedido::STATUS_ENTREGUE,
+        ]);
+    }
+
+    public function fechado(): static
+    {
+        return $this->state([
+            'status' => Pedido::STATUS_FECHADO,
+            'fechado_em' => now(),
+        ]);
+    }
 }

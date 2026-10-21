@@ -1,5 +1,0 @@
-[33m681400c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m Painel da cozinha com fila e tempos de espera
-[33ma068164[m Sistema do garçom (mesas, comandas e fila da cozinha)
-[33m2ab337c[m corrige import de Produto nos FormRequests e integra CRUD aos campos de cardápio
-[33mdce1b9f[m Merge branch 'main' of https://github.com/LMCARRIJO/Aplicativo-Mobile-Restaurante
-[33mfe00fa0[m Arrumar campos do cardápio para produtos

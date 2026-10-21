@@ -14,8 +14,6 @@ class ProdutoService
     private const COLUNAS_ORDENAVEIS = [
         'nome',
         'preco',
-        'quantidade_estoque',
-        'data_validade',
         'categoria',
         'created_at',
         'updated_at',

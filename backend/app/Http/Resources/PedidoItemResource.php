@@ -18,6 +18,7 @@ class PedidoItemResource extends JsonResource
             'preco_unitario' => $this->preco_unitario,
             'subtotal' => number_format($this->subtotal(), 2, '.', ''),
             'observacao' => $this->observacao,
+            'status' => $this->status,
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

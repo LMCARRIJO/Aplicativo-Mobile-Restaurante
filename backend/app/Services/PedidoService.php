@@ -8,14 +8,12 @@ use App\Models\Pedido;
 use App\Models\PedidoItem;
 use App\Models\Produto;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class PedidoService
 {
     private const RELACOES = ['mesa:id,numero', 'itens'];
 
-    /**
-     * Histórico/fila de comandas, com filtro por status e por mesa.
-     */
     public function listAll(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         $status = $filters['status'] ?? null;
@@ -34,9 +32,6 @@ class PedidoService
         return Pedido::query()->with(self::RELACOES)->findOrFail($id);
     }
 
-    /**
-     * Abre a comanda de uma mesa. Só uma comanda ativa por mesa.
-     */
     public function abrir(Mesa $mesa, array $data): Pedido
     {
         if (! $mesa->ativa) {
@@ -56,70 +51,91 @@ class PedidoService
         return $pedido->load(self::RELACOES);
     }
 
-    /**
-     * Adiciona um prato na comanda guardando nome e preço do momento (snapshot).
-     */
     public function adicionarItem(Pedido $pedido, array $data): PedidoItem
     {
-        $this->garantirComandaAberta($pedido);
+        $this->garantirComandaRecebeItens($pedido);
 
         $produto = Produto::findOrFail($data['produto_id']);
 
-        $item = $pedido->itens()->create([
-            'produto_id' => $produto->id,
-            'produto_nome' => $produto->nome,
-            'quantidade' => $data['quantidade'],
-            'preco_unitario' => $produto->precoVigente(),
-            'observacao' => $data['observacao'] ?? null,
-        ]);
+        return DB::transaction(function () use ($pedido, $produto, $data) {
+            if ($pedido->status === Pedido::STATUS_ENTREGUE) {
+                $pedido->update([
+                    'status' => Pedido::STATUS_ABERTO,
+                    'enviado_em' => null,
+                    'pronto_em' => null,
+                ]);
+            }
 
-        $this->recalcularTotal($pedido);
+            $item = $pedido->itens()->create([
+                'produto_id' => $produto->id,
+                'produto_nome' => $produto->nome,
+                'quantidade' => $data['quantidade'],
+                'preco_unitario' => $produto->precoVigente(),
+                'observacao' => $data['observacao'] ?? null,
+                'status' => PedidoItem::STATUS_PENDENTE,
+            ]);
 
-        return $item;
+            $this->recalcularTotal($pedido);
+
+            return $item;
+        });
     }
 
     public function atualizarItem(Pedido $pedido, PedidoItem $item, array $data): PedidoItem
     {
         $this->garantirComandaAberta($pedido);
         $this->garantirItemDaComanda($pedido, $item);
+        $this->garantirItemPendente($item);
 
-        $item->update($data);
-        $this->recalcularTotal($pedido);
+        return DB::transaction(function () use ($pedido, $item, $data) {
+            $item->update($data);
+            $this->recalcularTotal($pedido);
 
-        return $item->refresh();
+            return $item->refresh();
+        });
     }
 
     public function removerItem(Pedido $pedido, PedidoItem $item): void
     {
         $this->garantirComandaAberta($pedido);
         $this->garantirItemDaComanda($pedido, $item);
+        $this->garantirItemPendente($item);
 
-        $item->delete();
-        $this->recalcularTotal($pedido);
+        DB::transaction(function () use ($pedido, $item) {
+            $item->delete();
+            $this->recalcularTotal($pedido);
+            $this->recalcularStatusAposRemocao($pedido);
+        });
     }
 
-    /**
-     * Envia a comanda para a cozinha (aberto -> em_preparo).
-     */
     public function enviarParaCozinha(Pedido $pedido): Pedido
     {
         if (! $pedido->estaAberto()) {
             throw new RegraNegocioException('Só comandas abertas podem ser enviadas para a cozinha.');
         }
 
-        if (! $pedido->itens()->exists()) {
+        if (! $pedido->itens()->where('status', PedidoItem::STATUS_PENDENTE)->exists()) {
             throw new RegraNegocioException('Adicione ao menos um item antes de enviar a comanda.');
         }
 
-        return $this->transicionar($pedido, Pedido::STATUS_EM_PREPARO, ['enviado_em' => now()]);
+        return DB::transaction(function () use ($pedido) {
+            $pedido->itens()
+                ->where('status', PedidoItem::STATUS_PENDENTE)
+                ->update(['status' => PedidoItem::STATUS_EM_PREPARO]);
+
+            return $this->transicionar($pedido, Pedido::STATUS_EM_PREPARO, [
+                'enviado_em' => now(),
+                'pronto_em' => null,
+            ]);
+        });
     }
 
-    /**
-     * Avança o status da comanda validando as transições permitidas.
-     */
     public function alterarStatus(Pedido $pedido, string $novoStatus): Pedido
     {
-        // Enviar para a cozinha tem regra própria (exige pelo menos um item).
+        if ($pedido->status === $novoStatus) {
+            return $pedido->load(self::RELACOES);
+        }
+
         if ($novoStatus === Pedido::STATUS_EM_PREPARO) {
             return $this->enviarParaCozinha($pedido);
         }
@@ -130,23 +146,58 @@ class PedidoService
             );
         }
 
-        // A cozinha terminou: registra o horário em que ficou pronta.
-        $extras = $novoStatus === Pedido::STATUS_PRONTO ? ['pronto_em' => now()] : [];
+        return DB::transaction(function () use ($pedido, $novoStatus) {
+            if ($novoStatus === Pedido::STATUS_PRONTO) {
+                $pedido->itens()
+                    ->where('status', PedidoItem::STATUS_EM_PREPARO)
+                    ->update(['status' => PedidoItem::STATUS_PRONTO]);
 
-        return $this->transicionar($pedido, $novoStatus, $extras);
+                return $this->transicionar($pedido, $novoStatus, ['pronto_em' => now()]);
+            }
+
+            if ($novoStatus === Pedido::STATUS_ENTREGUE) {
+                $pedido->itens()
+                    ->where('status', PedidoItem::STATUS_PRONTO)
+                    ->update(['status' => PedidoItem::STATUS_ENTREGUE]);
+
+                return $this->transicionar($pedido, $novoStatus);
+            }
+
+            if ($novoStatus === Pedido::STATUS_FECHADO) {
+                $this->garantirTodosItensEntregues($pedido);
+
+                return $this->transicionar($pedido, $novoStatus, ['fechado_em' => now()]);
+            }
+
+            if ($novoStatus === Pedido::STATUS_CANCELADO) {
+                $this->garantirSemItensEntregues($pedido);
+
+                $pedido->itens()
+                    ->whereIn('status', [
+                        PedidoItem::STATUS_PENDENTE,
+                        PedidoItem::STATUS_EM_PREPARO,
+                        PedidoItem::STATUS_PRONTO,
+                    ])
+                    ->update(['status' => PedidoItem::STATUS_CANCELADO]);
+
+                return $this->transicionar($pedido, $novoStatus);
+            }
+
+            return $this->transicionar($pedido, $novoStatus);
+        });
     }
 
-    /**
-     * Fila que o sistema da cozinha consome: comandas mais antigas primeiro.
-     * `em_preparo` ordena pelo envio, `pronto` pelo momento em que ficou pronta.
-     */
     public function filaCozinha(string $status = Pedido::STATUS_EM_PREPARO, int $perPage = 15): LengthAwarePaginator
     {
         $ordenacao = $status === Pedido::STATUS_PRONTO ? 'pronto_em' : 'enviado_em';
 
         return Pedido::query()
             ->where('status', $status)
-            ->with(self::RELACOES)
+            ->whereHas('itens', fn ($query) => $query->where('status', $status))
+            ->with([
+                'mesa:id,numero',
+                'itens' => fn ($query) => $query->where('status', $status),
+            ])
             ->orderBy($ordenacao)
             ->orderBy('id')
             ->paginate($perPage);
@@ -168,6 +219,34 @@ class PedidoService
         $pedido->update(['total' => round($total, 2)]);
     }
 
+    private function recalcularStatusAposRemocao(Pedido $pedido): void
+    {
+        $pedido->refresh();
+
+        if ($pedido->status !== Pedido::STATUS_ABERTO) {
+            return;
+        }
+
+        if ($pedido->itens()->where('status', PedidoItem::STATUS_PENDENTE)->exists()) {
+            return;
+        }
+
+        if ($pedido->itens()->where('status', PedidoItem::STATUS_ENTREGUE)->exists()) {
+            $pedido->update([
+                'status' => Pedido::STATUS_ENTREGUE,
+                'enviado_em' => null,
+                'pronto_em' => null,
+            ]);
+        }
+    }
+
+    private function garantirComandaRecebeItens(Pedido $pedido): void
+    {
+        if (! in_array($pedido->status, [Pedido::STATUS_ABERTO, Pedido::STATUS_ENTREGUE], true)) {
+            throw new RegraNegocioException('Esta comanda não está aberta para novos itens.');
+        }
+    }
+
     private function garantirComandaAberta(Pedido $pedido): void
     {
         if (! $pedido->estaAberto()) {
@@ -179,6 +258,27 @@ class PedidoService
     {
         if ($item->pedido_id !== $pedido->id) {
             throw new RegraNegocioException('Este item não pertence a esta comanda.', 404);
+        }
+    }
+
+    private function garantirItemPendente(PedidoItem $item): void
+    {
+        if ($item->status !== PedidoItem::STATUS_PENDENTE) {
+            throw new RegraNegocioException('Só é possível alterar itens que ainda não foram enviados à cozinha.');
+        }
+    }
+
+    private function garantirTodosItensEntregues(Pedido $pedido): void
+    {
+        if ($pedido->itens()->where('status', '!=', PedidoItem::STATUS_ENTREGUE)->exists()) {
+            throw new RegraNegocioException('Todos os itens precisam ser entregues antes de fechar a conta.');
+        }
+    }
+
+    private function garantirSemItensEntregues(Pedido $pedido): void
+    {
+        if ($pedido->itens()->where('status', PedidoItem::STATUS_ENTREGUE)->exists()) {
+            throw new RegraNegocioException('Esta conta já tem itens entregues e deve ser fechada, não cancelada.');
         }
     }
 }

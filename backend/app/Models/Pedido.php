@@ -21,24 +21,28 @@ class Pedido extends Model
 
     public const STATUS_CANCELADO = 'cancelado';
 
+    public const STATUS_FECHADO = 'fechado';
+
     /**
-     * Status que ainda ocupam a mesa. `entregue` e `cancelado` liberam.
+     * Status que ainda ocupam a mesa. Apenas `fechado` e `cancelado` liberam.
      */
     public const STATUS_ATIVOS = [
         self::STATUS_ABERTO,
         self::STATUS_EM_PREPARO,
         self::STATUS_PRONTO,
+        self::STATUS_ENTREGUE,
     ];
 
     /**
-     * Fluxo da comanda: aberto -> em_preparo -> pronto -> entregue.
-     * `cancelado` é possível enquanto a comanda não foi entregue.
+     * Fluxo da comanda: aberto -> em_preparo -> pronto -> entregue -> fechado.
+     * `cancelado` é possível enquanto não houver itens entregues na conta.
      */
     public const TRANSICOES = [
         self::STATUS_ABERTO => [self::STATUS_EM_PREPARO, self::STATUS_CANCELADO],
         self::STATUS_EM_PREPARO => [self::STATUS_PRONTO, self::STATUS_CANCELADO],
         self::STATUS_PRONTO => [self::STATUS_ENTREGUE, self::STATUS_CANCELADO],
-        self::STATUS_ENTREGUE => [],
+        self::STATUS_ENTREGUE => [self::STATUS_FECHADO],
+        self::STATUS_FECHADO => [],
         self::STATUS_CANCELADO => [],
     ];
 
@@ -49,12 +53,14 @@ class Pedido extends Model
         'total',
         'enviado_em',
         'pronto_em',
+        'fechado_em',
     ];
 
     protected $casts = [
         'total' => 'decimal:2',
         'enviado_em' => 'datetime',
         'pronto_em' => 'datetime',
+        'fechado_em' => 'datetime',
     ];
 
     protected $attributes = [
@@ -73,7 +79,7 @@ class Pedido extends Model
     }
 
     /**
-     * Só é possível mexer nos itens enquanto a comanda não foi enviada à cozinha.
+     * Só é possível editar/remover itens pendentes enquanto a rodada está aberta.
      */
     public function estaAberto(): bool
     {

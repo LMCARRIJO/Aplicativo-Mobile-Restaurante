@@ -26,8 +26,25 @@ class CozinhaApiTest extends TestCase
             'quantidade' => 2,
             'preco_unitario' => 35.50,
             'observacao' => 'Sem cebola',
+            'status' => 'em_preparo',
         ]);
         $pedido->update(['total' => 71.00]);
+
+        return $pedido->refresh();
+    }
+
+    private function comandaPronta(int $minutosAtras = 0): Pedido
+    {
+        $pedido = Pedido::factory()->pronto($minutosAtras)->create();
+
+        $pedido->itens()->create([
+            'produto_id' => null,
+            'produto_nome' => 'Feijoada',
+            'quantidade' => 1,
+            'preco_unitario' => 35.50,
+            'status' => 'pronto',
+        ]);
+        $pedido->update(['total' => 35.50]);
 
         return $pedido->refresh();
     }
@@ -64,8 +81,8 @@ class CozinhaApiTest extends TestCase
     {
         $this->comandaEmPreparo();
 
-        $prontaAntiga = Pedido::factory()->pronto(20)->create();
-        $prontaNova = Pedido::factory()->pronto(5)->create();
+        $prontaAntiga = $this->comandaPronta(20);
+        $prontaNova = $this->comandaPronta(5);
 
         $this->getJson('/api/cozinha/fila?status=pronto')
             ->assertOk()
@@ -145,12 +162,18 @@ class CozinhaApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('data.status', 'pronto');
 
-        // garçom entrega e a mesa é liberada
+        // garçom entrega; a mesa continua ocupada até fechar a conta
         $this->patchJson("/api/pedidos/{$pedidoId}/status", ['status' => 'entregue'])
             ->assertOk()
             ->assertJsonPath('data.status', 'entregue');
 
         $this->getJson('/api/cozinha/fila?status=pronto')->assertOk()->assertJsonCount(0, 'data');
+        $this->getJson("/api/mesas/{$mesa->id}")->assertOk()->assertJsonPath('data.status', 'ocupada');
+
+        $this->patchJson("/api/pedidos/{$pedidoId}/status", ['status' => 'fechado'])
+            ->assertOk()
+            ->assertJsonPath('data.status', 'fechado');
+
         $this->getJson("/api/mesas/{$mesa->id}")->assertOk()->assertJsonPath('data.status', 'livre');
     }
 }

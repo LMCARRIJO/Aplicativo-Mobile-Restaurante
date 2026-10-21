@@ -98,15 +98,19 @@ class MesaApiTest extends TestCase
             ->assertJsonPath('data.0.id', $ocupada->id);
     }
 
-    public function test_mesa_liberada_quando_a_comanda_e_entregue_ou_cancelada(): void
+    public function test_mesa_ocupada_quando_a_comanda_e_entregue_e_liberada_ao_fechar_ou_cancelar(): void
     {
         $entregue = Mesa::factory()->create(['numero' => 7]);
-        Pedido::factory()->create(['mesa_id' => $entregue->id, 'status' => Pedido::STATUS_ENTREGUE]);
+        Pedido::factory()->entregue()->create(['mesa_id' => $entregue->id]);
 
-        $cancelada = Mesa::factory()->create(['numero' => 8]);
+        $fechada = Mesa::factory()->create(['numero' => 8]);
+        Pedido::factory()->fechado()->create(['mesa_id' => $fechada->id]);
+
+        $cancelada = Mesa::factory()->create(['numero' => 9]);
         Pedido::factory()->create(['mesa_id' => $cancelada->id, 'status' => Pedido::STATUS_CANCELADO]);
 
-        $this->getJson("/api/mesas/{$entregue->id}")->assertOk()->assertJsonPath('data.status', 'livre');
+        $this->getJson("/api/mesas/{$entregue->id}")->assertOk()->assertJsonPath('data.status', 'ocupada');
+        $this->getJson("/api/mesas/{$fechada->id}")->assertOk()->assertJsonPath('data.status', 'livre');
         $this->getJson("/api/mesas/{$cancelada->id}")->assertOk()->assertJsonPath('data.status', 'livre');
     }
 

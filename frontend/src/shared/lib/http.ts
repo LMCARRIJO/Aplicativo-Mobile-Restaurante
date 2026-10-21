@@ -1,21 +1,59 @@
 import axios from 'axios';
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 /**
  * Cliente HTTP compartilhado por todas as features.
  */
 
+const PORTA_API = 8000;
+
+function ehHostLocal(hostname: string): boolean {
+  return (
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname === '[::1]' ||
+    /^192\.168\./.test(hostname) ||
+    /^10\./.test(hostname) ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(hostname)
+  );
+}
+
+function apiNaPorta(hostname: string, protocol = 'http:'): string {
+  return `${protocol}//${hostname}:${PORTA_API}/api`;
+}
+
 /**
- * Resolve a base da API. No Codespaces (web) troca a porta 8081 do Expo pela 8000 do Laravel.
+ * Resolve a base da API.
+ * Prioridade: override explícito > host usado pelo Expo Go > host da Web > fallback.
  */
 export function resolverApiUrl(): string {
   if (process.env.EXPO_PUBLIC_API_URL) return process.env.EXPO_PUBLIC_API_URL;
+
   if (Platform.OS === 'web' && typeof window !== 'undefined') {
     const { protocol, hostname } = window.location;
-    const host = hostname.replace(/-8081\./, '-8000.');
-    return `${protocol}//${host}/api`;
+
+    if (/-8081\./.test(hostname)) {
+      return `${protocol}//${hostname.replace(/-8081\./, '-8000.')}/api`;
+    }
+
+    if (ehHostLocal(hostname)) {
+      return apiNaPorta(hostname, protocol);
+    }
+
+    return `${protocol}//${hostname}/api`;
   }
-  return 'http://10.0.2.2:8000/api';
+
+  const hostExpo = Constants.expoConfig?.hostUri?.replace(/:\d+$/, '');
+  if (hostExpo) {
+    const host =
+      Platform.OS === 'android' && (hostExpo === 'localhost' || hostExpo === '127.0.0.1')
+        ? '10.0.2.2'
+        : hostExpo;
+    return apiNaPorta(host);
+  }
+
+  return apiNaPorta(Platform.OS === 'android' ? '10.0.2.2' : 'localhost');
 }
 
 export const API_URL = resolverApiUrl();
