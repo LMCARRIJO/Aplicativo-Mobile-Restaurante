@@ -352,7 +352,7 @@ curl -X PATCH "http://localhost:8000/api/pedidos/1/status" -H "Content-Type: app
 - **ProdutoSeeder**: 10 produtos (7 normais + 3 em promoção vigente). **MesaSeeder**: 12 mesas. **DatabaseSeeder**: usuário de teste + os dois seeders.
 - **ProdutoApiTest** (12 casos): CRUD com foto, campos base, validações, busca/categoria/ordenação, categorias, update parcial, troca/remoção de foto, normalização de vazios, exclusão de registro/foto.
 - **MesaApiTest** (8 casos): CRUD, número único, validação, status/pedido ativo, filtro por status, mesa ocupada após entrega e liberada ao fechar/cancelar, bloqueio de exclusão com comanda ativa, 404.
-- **PedidoApiTest** (16 casos): abrir comanda/itens, editar/remover/recalcular total, uma comanda por mesa, mesa inativa/inexistente, envio para cozinha, fluxo de status até fechar a conta, nova rodada após entrega, bloqueios de fechamento/cancelamento, snapshot, preço promocional, item de outra comanda, validação e filtros.
+- **PedidoApiTest** (17 casos): abrir comanda/itens, editar/remover/recalcular total, uma comanda por mesa, mesa inativa/inexistente, envio para cozinha, fluxo de status até fechar a conta, nova rodada após entrega, transições idempotentes, bloqueios de fechamento/cancelamento, snapshot, preço promocional, item de outra comanda, validação e filtros.
 - **CozinhaApiTest** (6 casos): fila em preparo ordenada, prontas, status inválido, marcar pronto, bloqueio de retorno para preparo, fluxo completo até fechar a conta.
 - Examples: 1 Feature + 1 Unit. Total atual: **45 casos**.
 - Os testes usam `RefreshDatabase`; uploads usam `Storage::fake('public')` e PNG gerado por `createWithContent` (não dependem de GD).
