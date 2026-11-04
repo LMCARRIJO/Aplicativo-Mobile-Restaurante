@@ -8,7 +8,11 @@ import type { Mesa } from '../types/Mesa';
 interface MesaCardProps {
   mesa: Mesa;
   onAbrir: () => void;
+<<<<<<< HEAD
   onEditar?: () => void;
+=======
+  onEditar: () => void;
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 }
 
 /** Cartão da mesa na grade do salão. Toque abre a comanda, o lápis edita a mesa. */
@@ -31,11 +35,17 @@ export function MesaCard({ mesa, onAbrir, onEditar }: MesaCardProps) {
     >
       <View style={estilos.topo}>
         <Text style={estilos.numero}>{mesa.numero}</Text>
+<<<<<<< HEAD
         {onEditar ? (
           <Pressable onPress={onEditar} hitSlop={10} style={estilos.lapis}>
             <Text style={estilos.lapisTexto}>Editar</Text>
           </Pressable>
         ) : null}
+=======
+        <Pressable onPress={onEditar} hitSlop={10} style={estilos.lapis}>
+          <Text style={estilos.lapisTexto}>Editar</Text>
+        </Pressable>
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
       </View>
 
       <Text style={ocupada ? estilos.statusOcupada : estilos.statusLivre}>

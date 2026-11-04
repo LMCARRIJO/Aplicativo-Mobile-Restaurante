@@ -99,12 +99,16 @@ export function MesaForm({ initial, submitting, submitLabel = 'Salvar', onSubmit
           )}
         />
 
+<<<<<<< HEAD
         <Botao
           title={submitLabel}
           loading={submitting}
           onPress={() => void salvar()}
           containerStyle={estilos.submit}
         />
+=======
+        <Botao title={submitLabel} loading={submitting} onPress={salvar} containerStyle={estilos.submit} />
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
       </ScrollView>
     </KeyboardAvoidingView>
   );

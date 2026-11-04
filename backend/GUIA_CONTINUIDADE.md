@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # Continuidade - cardápio, garçom, cozinha e autenticação prontos
+=======
+# Continuidade - cardápio e sistema do garçom prontos
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 
 Este backend representa o **cardápio de um restaurante** (pratos e bebidas) e o **sistema do garçom** (mesas e comandas), com camada OO e cobertura dos tipos exigidos (numbers, strings, dates, foto):
 
@@ -18,6 +22,7 @@ Este backend representa o **cardápio de um restaurante** (pratos e bebidas) e o
 
 Os campos de cardápio foram adicionados em `database/migrations/2026_10_18_000000_add_campos_cardapio_to_produtos_table.php:1`, que também removeu `quantidade_estoque` e `data_validade`. As categorias válidas ficam em `Produto::CATEGORIAS` (Entrada, Prato Principal, Sobremesa, Bebida, Acompanhamento).
 
+<<<<<<< HEAD
 ## Autenticação e perfis
 
 Sanctum com token pessoal e expiração de **30 dias** (`SANCTUM_EXPIRATION=43200`). Apenas `POST /api/login` e `GET /api/health` são públicas; todas as outras rotas usam `auth:sanctum` e o middleware `role`.
@@ -36,6 +41,8 @@ Sanctum com token pessoal e expiração de **30 dias** (`SANCTUM_EXPIRATION=4320
 - Testes: `AuthApiTest` (5) e `AutorizacaoApiTest` (10); helper `tests/TestCase.php:1` autentica com `Sanctum::actingAs`.
 - Frontend: `AuthProvider` restaura `/me` no boot, `src/shared/lib/sessao.ts` guarda o token em SecureStore/localStorage, `http.ts` injeta Bearer e trata `401`, e `Stack.Protected`/`Tabs.Protected` escondem login, abas e formulários por perfil.
 
+=======
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 ## O que foi feito
 
 1. Migration de cardápio com `preco_promocional`, `ingredientes`, `alergenicos`, `porcao`, `disponivel`, `promocao_fim` (e remoção de estoque/validade).
@@ -49,7 +56,11 @@ Sanctum com token pessoal e expiração de **30 dias** (`SANCTUM_EXPIRATION=4320
 
 - `destroy` responde `204` **sem corpo** (`response()->noContent()`).
 - `index` aceita `per_page` (1..100, default 15), `search` (LIKE em `nome`/`descricao`), `categoria` e `order` (whitelist em `ProdutoService::COLUNAS_ORDENAVEIS`, prefixo `-` = desc; valor inválido cai em `-created_at`). O frontend percorre todas as páginas.
+<<<<<<< HEAD
 - `GET /api/produtos/categorias` devolve as categorias já cadastradas (valores distintos no banco), não a lista fixa `Produto::CATEGORIAS` (rota estática registrada antes do `apiResource`).
+=======
+- `GET /api/produtos/categorias` devolve `Produto::CATEGORIAS` (rota estática registrada antes do `apiResource`).
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 - Atualização é **parcial**: `PUT/PATCH` só mexe nos campos enviados. `remover_foto=true` apaga a foto atual; ao trocar a foto, a nova é gravada antes de apagar a antiga.
 - `create`/`update` normalizam strings vazias (`''`/espaços) para `null` nos campos opcionais (trait `NormalizaCamposVazios`).
 - A exclusão usa o modal próprio `frontend/src/shared/components/ModalConfirmacao.tsx` (confirmação dentro do app, sem `window.confirm`), funcionando em web e nativo.
@@ -90,6 +101,7 @@ Painel em `frontend/src/features/cozinha/` (aba **Cozinha**, `frontend/src/app/(
 php artisan migrate:fresh --seed
 php artisan test
 php artisan serve --host=0.0.0.0 --port=8000
+<<<<<<< HEAD
 TOKEN=$(curl -s -X POST "http://localhost:8000/api/login" -H "Content-Type: application/json" -d "{\"email\":\"admin@restaurante.test\",\"password\":\"password\"}" | jq -r .data.token)
 curl -H "Authorization: Bearer $TOKEN" "http://localhost:8000/api/produtos?per_page=100"
 curl -H "Authorization: Bearer $TOKEN" "http://localhost:8000/api/produtos?search=moqueca&categoria=Prato%20Principal&order=-preco"
@@ -111,6 +123,23 @@ Sem token, as rotas protegidas respondem `401` (mesmo sem `Accept: application/j
 - `GET /api/me` - usuário do token atual
 - `POST /api/logout` - revoga o token atual (`204`)
 - `GET /api/produtos?page=1&per_page=15&search=&categoria=&order=` - lista paginada + filtros (exige token)
+=======
+curl "http://localhost:8000/api/produtos?per_page=100"
+curl "http://localhost:8000/api/produtos?search=moqueca&categoria=Prato%20Principal&order=-preco"
+curl "http://localhost:8000/api/produtos/categorias"
+curl "http://localhost:8000/api/mesas"
+curl -X POST "http://localhost:8000/api/pedidos" -H "Content-Type: application/json" -d "{\"mesa_id\":1}"
+curl -X POST "http://localhost:8000/api/pedidos/1/itens" -H "Content-Type: application/json" -d "{\"produto_id\":1,\"quantidade\":2}"
+curl -X POST "http://localhost:8000/api/pedidos/1/enviar"
+curl "http://localhost:8000/api/cozinha/fila"
+curl "http://localhost:8000/api/cozinha/fila?status=pronto"
+curl -X PATCH "http://localhost:8000/api/pedidos/1/status" -H "Content-Type: application/json" -d "{\"status\":\"pronto\"}"
+```
+
+## Endpoints prontos
+
+- `GET /api/produtos?page=1&per_page=15&search=&categoria=&order=` - lista paginada + filtros
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 - `GET /api/produtos/categorias` - categorias válidas
 - `POST /api/produtos` - multipart/form-data (campos do cardápio + `foto` image)
 - `GET /api/produtos/{id}`
@@ -129,6 +158,10 @@ A foto é tratada em `ProdutoService::storeFoto()` com disco `public` (`storage/
 
 ## Próximos passos sugeridos
 
+<<<<<<< HEAD
+=======
+- Autenticar as rotas com Sanctum (hoje são públicas).
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 - Expor no app um botão "Remover foto" na edição (o backend já aceita `remover_foto=true`).
 - Paginação na UI com `onEndReached` em vez de carregar tudo.
 - Melhorias possíveis no garçom: divisão de itens por pessoa, fechamento de conta com pagamento/impressão e cancelamento de uma rodada específica.

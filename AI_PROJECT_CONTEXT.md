@@ -2,12 +2,21 @@
 project: Restaurante-Mobile
 purpose: Aplicativo mobile de restaurante com API Laravel + Expo TS - cardápio, mesas, comandas do garçom e painel da cozinha
 ai_parseable: true
+<<<<<<< HEAD
 tags: [laravel, php, expo, typescript, crud, rest-api, storage, service-layer, react-query, axios, react-hook-form, zod, mesas, comandas, cozinha, sanctum, auth, roles, secure-store]
 created: 2026-09-20
 updated: 2026-11-04
 stack_backend: Laravel 13.32.0 (composer ^13.17) + PHP 8.3+ (runtime local atual 8.3.33; Codespaces registrado 8.4.15) + Sanctum 4.3.3 + SQLite (dev) + PHPUnit 12.5.35
 stack_frontend: Expo SDK 58.0.22 + Expo Router 58.0.29 + expo-image-picker 58.0.10 + expo-secure-store 58.0.2 + React 19.3.0 + React DOM 19.3.0 + React Native 0.88.1 + TypeScript 6.0.3 + React Query 5.105.1 + Axios 1.21.0 + React Hook Form 7.91.0 + Zod 4.6.7
 status: backend_cardapio_garcom_cozinha_conta_auth_roles_done_frontend_login_tabs_por_perfil_tests_green
+=======
+tags: [laravel, php, expo, typescript, crud, rest-api, storage, service-layer, react-query, axios, react-hook-form, zod, mesas, comandas, cozinha]
+created: 2026-09-20
+updated: 2026-10-20
+stack_backend: Laravel 13.32.0 (composer ^13.17) + PHP 8.3+ (runtime local atual 8.3.33; Codespaces registrado 8.4.15) + Sanctum 4.3.3 + SQLite (dev) + PHPUnit 12.5.35
+stack_frontend: Expo SDK 57.0.30 + Expo Router 57.0.28 + expo-image-picker 57.0.20 + React 19.2.3 + React Native 0.86.3 + TypeScript 6.0.3 + React Query 5.104.4 + Axios 1.20.0 + React Hook Form 7.90.0 + Zod 4.6.7
+status: backend_cardapio_garcom_cozinha_conta_done_frontend_3_tabs_tests_green
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 ---
 
 # CONTEXTO PARA IA - Como o projeto foi constituído até agora
@@ -28,7 +37,11 @@ Este documento é otimizado para leitura e filtragem por Agentes de IA. Use os c
 10. **Comentários** reescritos de pessoa-para-pessoa em 2ª pessoa (você), sem uso de 3ª pessoa. `backend/GUIA_CONTINUIDADE.md:1` reescrito no mesmo tom.
 11. **Continuação (2026-10-17)** os 4 atributos pendentes foram implementados: migration `database/migrations/2026_10_17_202211_add_campos_restantes_to_produtos_table.php:1`, `descricao`, `quantidade_estoque`, `data_validade`, `categoria` liberados em Model/Requests/Resource/Factory e no frontend.
 12. **Correções (2026-10-17)** `destroy` retorna `204` sem corpo (`response()->noContent()`), paginação aceita `per_page` (1..100) no backend e o frontend percorre todas as páginas, exclusão com `try/catch` (no antigo `App.tsx`, antes da reestruturação). Symlink `public/storage -> storage/app/public` recriado.
+<<<<<<< HEAD
 13. **Reestruturação feature-driven (2026-10-17)** frontend migrado para **Expo Router** (`expo-router react-native-safe-area-context react-native-screens expo-linking expo-constants expo-status-bar`), entry `expo-router/entry`, rotas em `src/app/` e código por funcionalidade em `src/features/produtos/` + `src/shared/`. Removidos `App.tsx`, `index.ts`, `src/services/` e `src/types/`. Resolvido conflito de peer deps (`react-dom` fixado em `19.3.0`, `expo-font` em `~58.0.11`). `expo-doctor` 21/21 e `tsc` OK.
+=======
+13. **Reestruturação feature-driven (2026-10-17)** frontend migrado para **Expo Router** (`expo-router react-native-safe-area-context react-native-screens expo-linking expo-constants expo-status-bar`), entry `expo-router/entry`, rotas em `src/app/` e código por funcionalidade em `src/features/produtos/` + `src/shared/`. Removidos `App.tsx`, `index.ts`, `src/services/` e `src/types/`. Resolvido conflito de peer deps (`react-dom` fixado em `19.2.3`, `expo-font` em `~57.0.4`). `expo-doctor` 21/21 e `tsc` OK.
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 14. **Inserção/exclusão robustas (2026-10-17)** `ProdutoForm` ganhou `expo-image-picker` (selecionar/trocar foto com preview); `updateProduto` passou a enviar multipart com `_method=PUT` (foto também na edição); `ProdutosScreen` recarrega com `useFocusEffect` e confirma exclusão; `ProdutoFormScreen` mostra aviso de sucesso. Multipart `_method=PUT` validado via curl; `tsc`, `expo-doctor` 21/21 e `expo export` OK.
 15. **Correção de exclusão/feedback no web (2026-10-18)** o `Alert` do `react-native-web` é um no-op, então a confirmação de exclusão nunca chamava `remove()`. A exclusão agora usa o modal próprio `src/shared/components/ModalConfirmacao.tsx` (funciona em web e nativo). Criado `src/shared/utils/dialogos.ts` com `alerta()` (web: `window.alert`; nativo: `Alert`) — superado pelo item 17.
 16. **Cadastro orientado a cardápio (2026-10-18)** entidade passou de estoque para cardápio: migration `database/migrations/2026_10_18_000000_add_campos_cardapio_to_produtos_table.php:1` adicionou `preco_promocional`, `ingredientes`, `alergenicos`, `porcao`, `disponivel`, `promocao_fim` e removeu `quantidade_estoque`/`data_validade`. Model/Requests/Resource/Factory/tests e frontend atualizados; `migrate:fresh --seed` e `php artisan test --filter=ProdutoApiTest` (4 passed) OK.
@@ -39,18 +52,27 @@ Este documento é otimizado para leitura e filtragem por Agentes de IA. Use os c
 21. **Camada de dados e formulários (2026-10-19/20)** axios centralizado em `src/shared/lib/http.ts` (`API_URL`, `urlFoto`, `mensagemErro`, `resolverApiUrl`), com detecção do Codespaces na web (troca a porta 8081 do Expo pela 8000 do Laravel). Hooks migrados para React Query (`produtos`, `mesas`, `pedidos`, `cozinha`) com invalidação entre telas; formulários de produto e mesa usam React Hook Form + Zod; tema claro/escuro em `src/shared/theme/`; `SeletorFoto` isolado no formulário de produto.
 22. **Refinamentos do cardápio (2026-10-19)** `GET /api/produtos` aceita `search` (nome/descrição), `categoria` e `order` (prefixo `-` = desc); `GET /api/produtos/categorias` lista categorias cadastradas. `PUT/PATCH` é parcial, aceita `remover_foto=true` e normaliza strings vazias para `null` via trait `NormalizaCamposVazios`. Testes de Produto ampliados para 12 casos.
 23. **Correção da rota raiz (2026-10-20)** removido o `src/app/index.tsx` legado que reexportava `ProdutosScreen` e disputava `/` com `src/app/(tabs)/index.tsx`. A rota `/` agora abre a aba **Mesas**; `/cozinha` e `/cardapio` seguem funcionando. As rotas permanecem finas e as features em `src/features/` não foram alteradas. Validado com `tsc --noEmit` e Expo Web.
+<<<<<<< HEAD
 24. **Resolução automática da API (2026-10-20)** `resolverApiUrl` em `src/shared/lib/http.ts` passou a priorizar `EXPO_PUBLIC_API_URL` e, sem override, derivar o host do Expo Go via `Constants.expoConfig.hostUri` (porta 8000) ou do navegador na web (localhost/LAN na porta 8000, Codespaces com troca `-8081.` -> `-8000.`). Removido o `frontend/.env` com `localhost` fixo; o `.env` local atual mantém apenas opções comentadas e `frontend/.env.example` documenta as alternativas. Isso corrige o Expo Go em LAN sem afetar a Web e mantém override para produção/túnel. Validado com `tsc --noEmit`, Expo Web em `localhost` e via LAN, manifesto Android com `hostUri=192.168.0.11:8081` e `expo export --platform web`.
 25. **Fechamento de conta e nova rodada (2026-10-20)** `entregue` deixou de liberar a mesa; novo status `fechado` encerra a conta e libera a mesa. Migrations `2026_10_20_000001_add_status_to_pedido_itens_table.php:1` e `2026_10_20_000002_add_fechamento_to_pedidos_table.php:1` adicionaram status por item e `fechado_em` (pedidos antigos `entregue` viraram `fechado`). Após a entrega, o garçom pode lançar uma nova rodada; o pedido volta para `aberto` e a cozinha recebe apenas os itens novos. Itens entregues não são editáveis. `PATCH /api/pedidos/{id}/status` aceita `fechado`. Testes backend em 44 casos naquela entrega e `tsc --noEmit` OK.
 26. **Transições idempotentes (2026-10-21)** `PedidoService::alterarStatus()` passou a retornar a comanda atual quando o status solicitado é igual ao atual, sem alterar itens ou timestamps. Isso corrige o erro `pronto -> pronto` causado por tela defasada ou toque duplo após a cozinha marcar a nova rodada como pronta. Transições inválidas reais continuam retornando `409`. Novo teste em `PedidoApiTest`; total em **45 casos**.
 27. **Câmera e troca de foto (2026-11-01)** `ProdutoForm` passou a oferecer câmera além da galeria (`ImagePicker.launchCameraAsync` + permissão) e `SeletorFoto` ganhou `onPressCamera`/`onTrocarFoto`. Criado `src/features/produtos/components/ModalTrocaFoto.tsx` para escolher entre galeria e câmera ao trocar uma foto existente. O Expo foi atualizado para o SDK 58; `MesaForm`/`ProdutoForm` tiveram o `onPress` ajustado para `() => void salvar()` para satisfazer os tipos do React 19.3.
 
 28. **Autenticação Sanctum e perfis (2026-11-04)** migrations `2026_11_04_002754_create_personal_access_tokens_table.php:1` e `2026_11_04_002816_add_role_to_users_table.php:1`; `User` ganhou `HasApiTokens`, `role` (`admin|garcom|cozinha`) e states na factory. `AuthController` expõe `POST /api/login`, `GET /api/me` e `POST /api/logout`; `EnsureRole` (alias `role`) protege as rotas. Token expira em 30 dias (`SANCTUM_EXPIRATION=43200`). `UserSeeder` cria `admin@restaurante.test`, `garcom@restaurante.test` e `cozinha@restaurante.test` com senha `password`. No frontend, `AuthProvider` restaura a sessão via `/me`, `expo-secure-store`/`localStorage` guardam o token e `Stack.Protected`/`Tabs.Protected` escondem login, abas e rotas de admin conforme o perfil. `tsc` e exports web/android OK; suíte backend em **60 casos**.
+=======
+24. **Resolução automática da API (2026-10-20)** `resolverApiUrl` em `src/shared/lib/http.ts` passou a priorizar `EXPO_PUBLIC_API_URL` e, sem override, derivar o host do Expo Go via `Constants.expoConfig.hostUri` (porta 8000) ou do navegador na web (localhost/LAN na porta 8000, Codespaces com troca `-8081.` -> `-8000.`). Removido o `frontend/.env` com `localhost` fixo; `frontend/.env.example` ficou com as opções comentadas. Isso corrige o Expo Go em LAN sem afetar a Web e mantém override para produção/túnel. Validado com `tsc --noEmit`, Expo Web em `localhost` e via LAN, manifesto Android com `hostUri=192.168.0.11:8081` e `expo export --platform web`.
+25. **Fechamento de conta e nova rodada (2026-10-20)** `entregue` deixou de liberar a mesa; novo status `fechado` encerra a conta e libera a mesa. Migrations `2026_10_20_000001_add_status_to_pedido_itens_table.php:1` e `2026_10_20_000002_add_fechamento_to_pedidos_table.php:1` adicionaram status por item e `fechado_em` (pedidos antigos `entregue` viraram `fechado`). Após a entrega, o garçom pode lançar uma nova rodada; o pedido volta para `aberto` e a cozinha recebe apenas os itens novos. Itens entregues não são editáveis. `PATCH /api/pedidos/{id}/status` aceita `fechado`. Testes backend em 44 casos naquela entrega e `tsc --noEmit` OK.
+26. **Transições idempotentes (2026-10-21)** `PedidoService::alterarStatus()` passou a retornar a comanda atual quando o status solicitado é igual ao atual, sem alterar itens ou timestamps. Isso corrige o erro `pronto -> pronto` causado por tela defasada ou toque duplo após a cozinha marcar a nova rodada como pronta. Transições inválidas reais continuam retornando `409`. Novo teste em `PedidoApiTest`; total em **45 casos**.
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 
 ## 2. Mapa de diretórios
 
 ```
 backend/
+<<<<<<< HEAD
   app/Models/User.php:1                  # HasApiTokens + role admin/garcom/cozinha + ROLES
+=======
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
   app/Models/Produto.php:1               # cardápio + fillable/casts + foto_url + precoVigente()
   app/Models/Mesa.php:1                  # mesa + status calculado + pedidoAtivo()
   app/Models/Pedido.php:1                # comanda + STATUS_* + TRANSICOES
@@ -58,7 +80,10 @@ backend/
   app/Services/ProdutoService.php:1      # filtros, upload, update parcial, remoção de foto
   app/Services/MesaService.php:1         # mesas, status livre/ocupada, bloqueio de exclusão
   app/Services/PedidoService.php:1       # comandas, itens, total, status, fila da cozinha
+<<<<<<< HEAD
   app/Http/Controllers/Api/AuthController.php:1 # login/me/logout
+=======
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
   app/Http/Controllers/Api/ProdutoController.php:1
   app/Http/Controllers/Api/MesaController.php:1
   app/Http/Controllers/Api/PedidoController.php:1
@@ -73,11 +98,15 @@ backend/
   app/Http/Requests/StorePedidoItemRequest.php:1
   app/Http/Requests/UpdatePedidoItemRequest.php:1
   app/Http/Requests/Concerns/NormalizaCamposVazios.php:1
+<<<<<<< HEAD
   app/Http/Resources/UserResource.php:1  # id/name/email/role
+=======
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
   app/Http/Resources/ProdutoResource.php:1
   app/Http/Resources/MesaResource.php:1
   app/Http/Resources/PedidoResource.php:1
   app/Http/Resources/PedidoItemResource.php:1
+<<<<<<< HEAD
   app/Http/Middleware/EnsureRole.php:1   # alias role:admin,garcom,cozinha
   app/Exceptions/RegraNegocioException.php:1 # erro de regra em JSON (409 por padrão)
   bootstrap/app.php:11                   # withRouting api + alias role + 401 JSON
@@ -85,6 +114,13 @@ backend/
   config/cors.php:18                     # paths api/*, storage/*, allowed_origins *
   config/filesystems.php:1               # disk public -> storage/app/public
   config/sanctum.php:1                   # expiration 43200 (30 dias)
+=======
+  app/Exceptions/RegraNegocioException.php:1 # erro de regra em JSON (409 por padrão)
+  bootstrap/app.php:11                   # withRouting api
+  routes/api.php:1                       # produtos, mesas, pedidos, itens, cozinha, health
+  config/cors.php:18                     # paths api/*, storage/*, allowed_origins *
+  config/filesystems.php:1               # disk public -> storage/app/public
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
   database/migrations/
     2026_09_20_173920_create_produtos_table.php:1      # base (nome, preco, foto_path)
     2026_10_17_202211_add_campos_restantes_to_produtos_table.php:1
@@ -95,13 +131,17 @@ backend/
     2026_10_19_000004_add_tempos_da_cozinha_to_pedidos_table.php:1
     2026_10_20_000001_add_status_to_pedido_itens_table.php:1
     2026_10_20_000002_add_fechamento_to_pedidos_table.php:1
+<<<<<<< HEAD
     2026_11_04_002754_create_personal_access_tokens_table.php:1
     2026_11_04_002816_add_role_to_users_table.php:1
   database/factories/UserFactory.php:1
+=======
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
   database/factories/ProdutoFactory.php:1
   database/factories/MesaFactory.php:1
   database/factories/PedidoFactory.php:1
   database/factories/PedidoItemFactory.php:1
+<<<<<<< HEAD
   database/seeders/DatabaseSeeder.php:1  # UserSeeder + ProdutoSeeder + MesaSeeder
   database/seeders/UserSeeder.php:1      # admin/garcom/cozinha, senha password
   database/seeders/ProdutoSeeder.php:1   # 7 normais + 3 em promoção
@@ -109,6 +149,11 @@ backend/
   tests/TestCase.php:1                   # helper autenticarComo($perfil)
   tests/Feature/AuthApiTest.php:1
   tests/Feature/AutorizacaoApiTest.php:1
+=======
+  database/seeders/DatabaseSeeder.php:1  # User + ProdutoSeeder + MesaSeeder
+  database/seeders/ProdutoSeeder.php:1   # 7 normais + 3 em promoção
+  database/seeders/MesaSeeder.php:1      # 12 mesas
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
   tests/Feature/ProdutoApiTest.php:1
   tests/Feature/MesaApiTest.php:1
   tests/Feature/PedidoApiTest.php:1
@@ -116,6 +161,7 @@ backend/
   storage/app/public/produtos/           # destino da foto; public/storage é symlink
 
 frontend/
+<<<<<<< HEAD
   app.json:1                             # Expo config + scheme + plugins (router, image-picker, secure-store, status-bar, font)
   package.json:1                         # expo-router/entry; React Query, axios, RHF, zod, secure-store
   tsconfig.json:1                        # alias @/* -> ./src/*
@@ -124,6 +170,15 @@ frontend/
       _layout.tsx:1                      # QueryClientProvider + AuthProvider + AvisoProvider + Stack.Protected
       login.tsx:1                        # -> LoginScreen
       (tabs)/_layout.tsx:1               # Tabs.Protected: Mesas/Cozinha/Cardápio + Sair
+=======
+  app.json:1                             # Expo config + scheme + expo-router/image-picker
+  package.json:1                         # expo-router/entry; React Query, axios, RHF, zod
+  tsconfig.json:1                        # alias @/* -> ./src/*
+  src/
+    app/
+      _layout.tsx:1                      # QueryClientProvider + AvisoProvider + Stack
+      (tabs)/_layout.tsx:1               # abas Mesas, Cozinha, Cardápio
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
       (tabs)/index.tsx:1                 # -> MesasScreen
       (tabs)/cozinha.tsx:1               # -> CozinhaScreen
       (tabs)/cardapio.tsx:1              # -> ProdutosScreen
@@ -131,6 +186,7 @@ frontend/
       produto/[id].tsx:1                 # -> ProdutoFormScreen (edit)
       mesa/nova.tsx:1                    # -> MesaFormScreen (create)
       mesa/editar/[id].tsx:1             # -> MesaFormScreen (edit)
+<<<<<<< HEAD
       mesa/[id].tsx:1                    # -> ComandaScreen (admin/garcom)
     features/auth/
       context/AuthContext.tsx:1          # sessão, entrar/sair, flags de perfil
@@ -138,13 +194,21 @@ frontend/
       screens/LoginScreen.tsx:1          # e-mail + senha
       services/authApi.ts:1              # login, /me, logout
       types/Usuario.ts:1                 # Usuario, Sessao, Perfil
+=======
+      mesa/[id].tsx:1                    # -> ComandaScreen
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
     features/produtos/
       constants.ts:1                     # CATEGORIAS e ALERGENICOS
       schemas/produtoSchema.ts:1         # validação Zod do formulário
       components/ProdutoCard.tsx:1
+<<<<<<< HEAD
       components/ProdutoForm.tsx:1       # RHF + Zod + foto (galeria/câmera)
       components/SeletorFoto.tsx:1       # galeria/câmera/preview/troca de foto
       components/ModalTrocaFoto.tsx:1    # escolha entre galeria e câmera ao trocar foto
+=======
+      components/ProdutoForm.tsx:1       # RHF + Zod + foto
+      components/SeletorFoto.tsx:1       # galeria/preview/remoção visual
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
       hooks/useProdutos.ts:1             # React Query: lista, detalhe, salvar, excluir
       services/produtosApi.ts:1          # CRUD multipart/paginação + re-export do http
       types/Produto.ts:1
@@ -180,8 +244,12 @@ frontend/
       components/ModalAviso.tsx:1
       components/AvisoProvider.tsx:1
       components/SeletorChips.tsx:1
+<<<<<<< HEAD
       lib/http.ts:1                      # axios, Bearer automático, 401 -> logout, API_URL, urlFoto, mensagemErro
       lib/sessao.ts:1                    # token em SecureStore (nativo) / localStorage (web)
+=======
+      lib/http.ts:1                      # axios, resolução automática de API_URL, urlFoto, mensagemErro
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
       lib/queryClient.ts:1
       theme/colors.ts:1                  # paletas clara/escura + tokens
       theme/useTheme.ts:1
@@ -196,7 +264,11 @@ frontend/
 - `id` bigint PK
 - `nome` string(150) required
 - `preco` decimal(10,2) required
+<<<<<<< HEAD
 - `preco_promocional` decimal(8,2) nullable
+=======
+- `preco_promocional` decimal(10,2) nullable
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 - `foto_path` string nullable (caminho relativo `produtos/xxx.jpg`)
 - `descricao` text nullable
 - `ingredientes` text nullable
@@ -283,20 +355,29 @@ TRANSICOES = [
   - `PedidoResource`: `id, mesa_id, mesa{id,numero}, status, observacao, total, itens, criado_em, enviado_em, pronto_em, fechado_em, atualizado_em`.
   - `PedidoItemResource`: `id, pedido_id, produto_id, produto_nome, quantidade, preco_unitario, subtotal, observacao, status` + timestamps.
 - **Controllers** usam Route Model Binding. `index` limita `per_page` entre 1 e 100 (default 15; mesas default 50). `store` -> `201`; `destroy` -> `204`. `RegraNegocioException` renderiza JSON com status (409 padrão, 404 quando informado).
+<<<<<<< HEAD
 - **Storage** disco `public`, `php artisan storage:link` cria `public/storage -> storage/app/public`. Se `public/storage` virar diretório comum, apague e rode `php artisan storage:link`. Se `bootstrap/cache/config.php` vier de outra máquina, rode `php artisan config:clear` antes. No app, a imagem é montada por `urlFoto(foto_path)`, então `APP_URL` não afeta a exibição.
 - **CORS** `config/cors.php:18` cobre `api/*`, `sanctum/csrf-cookie` e `storage/*`, com `allowed_origins *`.
 - **Autenticação** Sanctum com tokens pessoais (`auth:sanctum`). Apenas `POST /api/login` e `GET /api/health` são públicas. `AuthController` (`login`, `me`, `logout`) usa `Hash::check` e devolve `data.token`, `data.token_type` e `data.usuario`. `EnsureRole` (alias `role`) aplica a matriz: `admin` tudo; `garcom` mesas/cardápio (leitura), comandas/itens e transições `em_preparo`, `entregue`, `fechado`, `cancelado`; `cozinha` fila, leitura de pedido e somente `pronto`. `AtualizarStatusPedidoRequest` também bloqueia status fora do perfil com `403`. Tokens expiram em 30 dias (`SANCTUM_EXPIRATION=43200`); o login tem throttle de 6 tentativas/min.
+=======
+- **Storage** disco `public`, `php artisan storage:link` cria `public/storage -> storage/app/public`. Se `public/storage` virar diretório comum, apague e rode `php artisan storage:link`. No app, a imagem é montada por `urlFoto(foto_path)`, então `APP_URL` não afeta a exibição.
+- **CORS** `config/cors.php:18` cobre `api/*`, `sanctum/csrf-cookie` e `storage/*`, com `allowed_origins *`.
+- **Autenticação** Sanctum instalado, mas todas as rotas são públicas (`authorize()` sempre `true`) — ponto a evoluir.
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 
 ## 5. Contrato API
 
 Base `http://localhost:8000/api` (ou `http://10.0.2.2:8000/api` no emulador Android)
 
+<<<<<<< HEAD
 ### Autenticação
 - `POST /api/login` `{email, password}` -> `200 {data:{token, token_type:"Bearer", usuario:{id,name,email,role}}}`; credenciais inválidas -> `401`; throttle de 6 tentativas/min.
 - `GET /me` -> `200 {data:{id,name,email,role}}` (token atual).
 - `POST /logout` -> `204` (revoga apenas o token atual).
 - Todas as rotas abaixo exigem `Authorization: Bearer <token>`. Sem token -> `401`; perfil sem permissão -> `403`.
 
+=======
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 ### Produtos
 - `GET /produtos?page=1&per_page=15&search=&categoria=&order=` -> coleção paginada com `data`, `links`, `meta`; `order` aceita `nome`, `preco`, `categoria`, `created_at`, `updated_at` e prefixo `-` para desc.
 - `GET /produtos/categorias` -> `{data:[...]}` com categorias já cadastradas.
@@ -328,6 +409,7 @@ Base `http://localhost:8000/api` (ou `http://10.0.2.2:8000/api` no emulador Andr
 
 Exemplos:
 ```bash
+<<<<<<< HEAD
 TOKEN=$(curl -s -X POST "http://localhost:8000/api/login" -H "Content-Type: application/json" -d "{\"email\":\"admin@restaurante.test\",\"password\":\"password\"}" | jq -r .data.token)
 curl -H "Authorization: Bearer $TOKEN" "http://localhost:8000/api/produtos?per_page=100"
 curl -H "Authorization: Bearer $TOKEN" "http://localhost:8000/api/produtos?search=moqueca&categoria=Prato%20Principal&order=-preco"
@@ -338,10 +420,22 @@ curl -X POST "http://localhost:8000/api/pedidos/1/itens" -H "Authorization: Bear
 curl -X POST "http://localhost:8000/api/pedidos/1/enviar" -H "Authorization: Bearer $TOKEN"
 curl -H "Authorization: Bearer $TOKEN" "http://localhost:8000/api/cozinha/fila"
 curl -X PATCH "http://localhost:8000/api/pedidos/1/status" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d "{\"status\":\"pronto\"}"
+=======
+curl "http://localhost:8000/api/produtos?per_page=100"
+curl "http://localhost:8000/api/produtos?search=moqueca&categoria=Prato%20Principal&order=-preco"
+curl "http://localhost:8000/api/produtos/categorias"
+curl "http://localhost:8000/api/mesas?status=livre"
+curl -X POST "http://localhost:8000/api/pedidos" -H "Content-Type: application/json" -d "{\"mesa_id\":1}"
+curl -X POST "http://localhost:8000/api/pedidos/1/itens" -H "Content-Type: application/json" -d "{\"produto_id\":1,\"quantidade\":2}"
+curl -X POST "http://localhost:8000/api/pedidos/1/enviar"
+curl "http://localhost:8000/api/cozinha/fila"
+curl -X PATCH "http://localhost:8000/api/pedidos/1/status" -H "Content-Type: application/json" -d "{\"status\":\"pronto\"}"
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 ```
 
 ## 6. Frontend - feature-driven (Expo Router + React Query)
 
+<<<<<<< HEAD
 - **Arquitetura por funcionalidade**: rotas em `src/app/` (finas, só reexportam `screens/`), lógica por feature em `src/features/<nome>/`, código genérico em `src/shared/`. Alias `@/*` -> `src/*` (`tsconfig.json:7`).
 - **Expo Router** com `main: expo-router/entry`; `app.json` tem `scheme: restaurantemobile`, plugins `expo-router`, `expo-image-picker`, `expo-status-bar` e `expo-font`, além de `experiments.typedRoutes`.
 - **Raiz**: `src/app/_layout.tsx:1` monta `QueryClientProvider`, `AuthProvider`, `AvisoProvider`, `Stack` (títulos das rotas) e `StatusBar`. `Stack.Protected` libera `login` quando não há usuário e as rotas internas quando há; `mesa/[id]` é restrita a `admin|garcom` e as rotas de formulário a `admin`. `queryClient` em `src/shared/lib/queryClient.ts:1`.
@@ -358,6 +452,23 @@ curl -X PATCH "http://localhost:8000/api/pedidos/1/status" -H "Authorization: Be
   - `services/produtosApi.ts` pagina todas as páginas (`per_page=100`) e faz `create/update/delete` multipart; update envia `_method=PUT` e foto real no web (`File`) ou `{uri,name,type}` no nativo. Reexporta `API_URL`, `urlFoto`, `mensagemErro` e `resolverApiUrl`.
   - Hooks (`useProdutos`, `useProduto`, `useSalvarProduto`, `useExcluirProduto`) usam React Query; mutações invalidam `['produtos']`.
   - `ProdutoForm` usa React Hook Form + Zod, chips de categoria/alergênicos, `Switch` de disponibilidade, `SeletorFoto` e `ModalTrocaFoto` (galeria/câmera).
+=======
+- **Arquitetura por funcionalidade**: rotas em `src/app/` (finas, só reexportam `screens/`), lógica por feature em `src/features/<nome>/`, código genérico em `src/shared/`. Alias `@/*` -> `src/*` (`tsconfig.json:6`).
+- **Expo Router** com `main: expo-router/entry`; `app.json` tem `scheme: restaurantemobile`, plugin `expo-router`, `expo-image-picker` e `experiments.typedRoutes`.
+- **Raiz**: `src/app/_layout.tsx:1` monta `QueryClientProvider`, `AvisoProvider`, `Stack` (títulos das rotas) e `StatusBar`. `queryClient` em `src/shared/lib/queryClient.ts:1`.
+- **Abas** (`src/app/(tabs)/_layout.tsx:1`): `Mesas` (index, inicial), `Cozinha` e `Cardápio`. Rotas de detalhe/formulário ficam no Stack raiz.
+- **Rota raiz**: `src/app/(tabs)/index.tsx:1` responde por `/` e abre a aba Mesas; não existe `src/app/index.tsx`.
+- **HTTP** (`src/shared/lib/http.ts:1`):
+  - `API_URL` = `EXPO_PUBLIC_API_URL` se definido. Sem override, no nativo usa o host de `Constants.expoConfig.hostUri` na porta 8000 (Expo Go LAN/emulador); na web usa `localhost`/IP privado na porta 8000 e reescreve `-8081.` para `-8000.` no Codespaces. Fallback: Android `10.0.2.2:8000`, iOS `localhost:8000`.
+  - O `frontend/.env` local não é necessário; `frontend/.env.example` mantém as opções de override comentadas.
+  - Instância axios `api` com `Accept: application/json` e timeout 20s.
+  - `urlFoto(foto_path)` monta `${origem}/storage/${path}`.
+  - `mensagemErro(erro)` extrai mensagem de validação do Laravel/axios.
+- **Produtos**:
+  - `services/produtosApi.ts` pagina todas as páginas (`per_page=100`) e faz `create/update/delete` multipart; update envia `_method=PUT` e foto real no web (`File`) ou `{uri,name,type}` no nativo. Reexporta `API_URL`, `urlFoto` e `mensagemErro`.
+  - Hooks (`useProdutos`, `useProduto`, `useSalvarProduto`, `useExcluirProduto`) usam React Query; mutações invalidam `['produtos']`.
+  - `ProdutoForm` usa React Hook Form + Zod, chips de categoria/alergênicos, `Switch` de disponibilidade, `SeletorFoto`.
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
   - `ProdutosScreen` usa `FlatList`, `useFocusEffect` para refetch, pull-to-refresh e `ModalConfirmacao` para excluir.
   - `ProdutoFormScreen` detecta `id`, busca detalhe, cria/edita e mostra `alerta` de sucesso antes de voltar.
 - **Garçom**:
@@ -381,49 +492,82 @@ curl -X PATCH "http://localhost:8000/api/pedidos/1/status" -H "Authorization: Be
 - **MesaFactory**: número único, capacidade 2/4/6/8, ativa.
 - **PedidoFactory**: mesa factory, status `aberto`, total 0; estados `emPreparo($min)` e `pronto($min)` ajustam `enviado_em`/`pronto_em`; `entregue()` e `fechado()` cobrem os status finais.
 - **PedidoItemFactory**: pedido/produto factory, snapshot de nome/preço, quantidade 1–3, status inicial `pendente`.
+<<<<<<< HEAD
 - **ProdutoSeeder**: 10 produtos (7 normais + 3 em promoção vigente). **MesaSeeder**: 12 mesas. **UserSeeder**: `admin@restaurante.test`, `garcom@restaurante.test` e `cozinha@restaurante.test`, senha `password`. **DatabaseSeeder**: chama `UserSeeder`, `ProdutoSeeder` e `MesaSeeder`.
+=======
+- **ProdutoSeeder**: 10 produtos (7 normais + 3 em promoção vigente). **MesaSeeder**: 12 mesas. **DatabaseSeeder**: usuário de teste + os dois seeders.
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 - **ProdutoApiTest** (12 casos): CRUD com foto, campos base, validações, busca/categoria/ordenação, categorias, update parcial, troca/remoção de foto, normalização de vazios, exclusão de registro/foto.
 - **MesaApiTest** (8 casos): CRUD, número único, validação, status/pedido ativo, filtro por status, mesa ocupada após entrega e liberada ao fechar/cancelar, bloqueio de exclusão com comanda ativa, 404.
 - **PedidoApiTest** (17 casos): abrir comanda/itens, editar/remover/recalcular total, uma comanda por mesa, mesa inativa/inexistente, envio para cozinha, fluxo de status até fechar a conta, nova rodada após entrega, transições idempotentes, bloqueios de fechamento/cancelamento, snapshot, preço promocional, item de outra comanda, validação e filtros.
 - **CozinhaApiTest** (6 casos): fila em preparo ordenada, prontas, status inválido, marcar pronto, bloqueio de retorno para preparo, fluxo completo até fechar a conta.
+<<<<<<< HEAD
 - **AuthApiTest** (5 casos): login com token/usuário, credenciais inválidas, validação, `/me` e logout revogando só o token atual.
 - **AutorizacaoApiTest** (10 casos): `401` sem token, `403` do garçom em produtos/mesas/fila da cozinha, garçom abrindo comanda/itens, cozinha na fila e marcando `pronto`, bloqueios de mesas/cardápio/`entregue` para cozinha e admin acessando todas as áreas.
 - Examples: 1 Feature + 1 Unit. Total atual: **60 casos**.
 - Os testes usam `RefreshDatabase`; uploads usam `Storage::fake('public')` e PNG gerado por `createWithContent` (não dependem de GD). O helper `TestCase::autenticarComo($perfil)` usa `Sanctum::actingAs` e factory `make()`, sem criar usuário no banco.
+=======
+- Examples: 1 Feature + 1 Unit. Total atual: **45 casos**.
+- Os testes usam `RefreshDatabase`; uploads usam `Storage::fake('public')` e PNG gerado por `createWithContent` (não dependem de GD).
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 
 Rodar: `php artisan migrate:fresh --seed && php artisan test`. Lint: `vendor/bin/pint --test` (quando `vendor/` estiver instalado).
 
 ## 8. Como estender (próximos passos possíveis)
 
+<<<<<<< HEAD
 1. **Remover foto na UI**: o backend já aceita `remover_foto=true`; falta botão explícito na edição do produto.
 2. **Paginação na UI**: usar `onEndReached` em vez de carregar todas as páginas no cardápio/mesas/comandas.
 3. **Garçom**: divisão por pessoa, fechamento de conta com pagamento/impressão e cancelamento de rodada específica.
 4. **Cozinha**: alerta sonoro/visual de comanda nova, filtro por categoria e impressão da comanda.
 5. **Qualidade**: CI com `php artisan test`, `pint --test`, `tsc --noEmit` e `expo-doctor`.
+=======
+1. **Auth**: aplicar `auth:sanctum` nas rotas e criar login por token; no frontend, `src/features/auth/` + rota `src/app/(auth)/login.tsx`.
+2. **Remover foto na UI**: o backend já aceita `remover_foto=true`; falta botão explícito na edição do produto.
+3. **Paginação na UI**: usar `onEndReached` em vez de carregar todas as páginas no cardápio/mesas/comandas.
+4. **Garçom**: divisão por pessoa, fechamento de conta com pagamento/impressão e cancelamento de rodada específica.
+5. **Cozinha**: alerta sonoro/visual de comanda nova, filtro por categoria e impressão da comanda.
+6. **Qualidade**: CI com `php artisan test`, `pint --test`, `tsc --noEmit` e `expo-doctor`.
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 
 ## 9. Convenções para IA filtrar
 
 - Campos do cardápio: `nome`, `preco`, `preco_promocional`, `foto_path`, `descricao`, `ingredientes`, `alergenicos`, `porcao`, `disponivel`, `promocao_fim`, `categoria`. Campos antigos `quantidade_estoque` e `data_validade` foram removidos.
 - Comanda: status em `Pedido::TRANSICOES`; `STATUS_ATIVOS` ocupam a mesa; `fechado`/`cancelado` liberam. `entregue` mantém a mesa ocupada e permite nova rodada; itens só mudam quando o pedido está `aberto` e o item está `pendente`.
 - Itens de comanda guardam **snapshot** (`produto_nome`, `preco_unitario`); `produto_id` pode virar `null` sem perder o histórico.
+<<<<<<< HEAD
 - **Auth**: só `POST /api/login` e `GET /api/health` são públicos; o restante exige `Authorization: Bearer`. Matriz: `admin` tudo; `garcom` mesas/cardápio (leitura), comandas/itens, `em_preparo|entregue|fechado|cancelado`; `cozinha` fila, leitura de pedido e `pronto`. Token dura 30 dias (`SANCTUM_EXPIRATION=43200`).
 - **Frontend auth**: `AuthProvider` restaura `/me` no boot; `Stack.Protected`/`Tabs.Protected` escondem login, abas e formulários por perfil; `sessao.ts` usa SecureStore no nativo e localStorage na web; `http.ts` injeta o Bearer e limpa a sessão em `401`.
 - **Testes auth**: use `$this->autenticarComo(User::ROLE_...)` (Sanctum::actingAs + factory `make()`) nos testes de feature; não crie usuário em `setUp()`.
+=======
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 - **Frontend feature-driven**: rotas em `src/app/*` nunca contêm regra de negócio (só reexportam `screens/`); cada feature isola `components/hooks/services/types/screens` (e `schemas`/`constants` quando necessário); o que é genérico vai em `src/shared/`.
 - **Dados no frontend** passam por React Query; ao criar/editar/remover, invalide as chaves relacionadas (`['produtos']`, `['mesas']`, `['pedidos']`, `['cozinha']`).
 - Decimais do Laravel chegam como `string` no TypeScript (`preco`, `total`, `preco_unitario`, `subtotal`).
 - `alerta()` é o único caminho para avisos; não usar `window.alert`/`Alert` diretamente nas telas.
+<<<<<<< HEAD
 - Comentários explicativos são normais; os marcadores antigos de conversa (`Oi!`, `Quando for sua vez`, `Te deixo`) não existem mais.
+=======
+- Comentários explicativos são normais; os marcadores antigos `// Oi,`/`// Você`/`// Quando você` não existem mais.
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 - `file_path:line` usado em docs para navegação direta.
 
 ## 10. Estado verificado
 
+<<<<<<< HEAD
 - Backend por contagem estática: **14 migrations**; 7 arquivos de Feature test (`ProdutoApiTest` 12, `MesaApiTest` 8, `PedidoApiTest` 17, `CozinhaApiTest` 6, `AuthApiTest` 5, `AutorizacaoApiTest` 10) + 2 Examples = **60 casos**. `php artisan test` em 2026-11-04: **60 passed, 420 assertions**.
 - `php artisan route:list --path=api -v` confirmou 26 rotas: só `login`/`health` públicas; as demais com `auth:sanctum` + `EnsureRole` (login com throttle 6/min). Um `bootstrap/cache/routes-v7.php` stale causava `404` no login; foi removido com `route:clear` + `optimize:clear`.
 - `GUIA_CONTINUIDADE.md` registra `migrate:fresh --seed` com 10 produtos, 12 mesas e 3 usuários; a suíte de testes está verde na última execução.
 - Contrato validado por curl: login com `admin@restaurante.test`/`password`, `/me`, `401` sem token, CRUD de produtos com foto, filtros, `_method=PUT`, remoção de foto, mesas, abertura de comanda, itens, envio, fila da cozinha, nova rodada e transições de status até `fechado`.
 - Frontend: `npx tsc --noEmit` passou em 2026-11-04; `npx expo export --platform web` e `--platform android` também passaram (o Android gerou Hermes com 1.355 módulos). `expo-secure-store` foi adicionado ao `package.json` e ao plugin do `app.json`.
 - Symlink `public/storage` (junction no Windows) recriado e verificado em 2026-11-03, apontando para `storage/app/public`. Se o `bootstrap/cache/config.php` vier de outra máquina, rode `php artisan config:clear` antes de recriar.
+=======
+- Backend por contagem estática: **12 migrations**; 5 arquivos de Feature test (`ProdutoApiTest` 12, `MesaApiTest` 8, `PedidoApiTest` 17, `CozinhaApiTest` 6) + 2 Examples = **45 casos**.
+- `GUIA_CONTINUIDADE.md` registra `migrate:fresh --seed` com 10 produtos e 12 mesas e suíte de testes verde na última execução; os seeders confirmam esses volumes.
+- Contrato validado por curl no guia: CRUD de produtos com foto, filtros, `_method=PUT`, remoção de foto, mesas, abertura de comanda, itens, envio, fila da cozinha, nova rodada e transições de status até `fechado`.
+- Frontend: `tsc`, `expo-doctor` 21/21 e `expo export` foram verificados antes da introdução de React Query/axios/RHF/Zod. Revalidado em 2026-10-20: `npx tsc --noEmit` e `npx expo export --platform web` passaram; `expo-doctor` permanece como verificação opcional.
+- Symlink `public/storage` deve apontar para `storage/app/public`; recriar com `php artisan storage:link` se necessário.
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 
 ---
 Gerado para consumo por LLMs/Agentes: filtre por `ai_parseable: true` e tags.

@@ -3,7 +3,10 @@
 namespace App\Http\Requests;
 
 use App\Models\Pedido;
+<<<<<<< HEAD
 use App\Models\User;
+=======
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -11,6 +14,7 @@ class AtualizarStatusPedidoRequest extends FormRequest
 {
     public function authorize(): bool
     {
+<<<<<<< HEAD
         $status = $this->string('status')->toString();
         $statusValidos = [
             Pedido::STATUS_EM_PREPARO,
@@ -35,6 +39,9 @@ class AtualizarStatusPedidoRequest extends FormRequest
             User::ROLE_COZINHA => $status === Pedido::STATUS_PRONTO,
             default => false,
         };
+=======
+        return true;
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
     }
 
     public function rules(): array

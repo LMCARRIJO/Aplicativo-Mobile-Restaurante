@@ -30,7 +30,10 @@ class UserFactory extends Factory
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+<<<<<<< HEAD
             'role' => User::ROLE_GARCOM,
+=======
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
         ];
     }
 
@@ -43,6 +46,7 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
+<<<<<<< HEAD
 
     public function admin(): static
     {
@@ -64,4 +68,6 @@ class UserFactory extends Factory
             'role' => User::ROLE_COZINHA,
         ]);
     }
+=======
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 }

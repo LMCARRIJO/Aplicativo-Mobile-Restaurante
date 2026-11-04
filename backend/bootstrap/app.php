@@ -1,6 +1,9 @@
 <?php
 
+<<<<<<< HEAD
 use App\Http\Middleware\EnsureRole;
+=======
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -14,11 +17,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+<<<<<<< HEAD
         $middleware->redirectGuestsTo(null);
 
         $middleware->alias([
             'role' => EnsureRole::class,
         ]);
+=======
+        //
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

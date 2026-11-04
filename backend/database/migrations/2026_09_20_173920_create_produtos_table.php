@@ -7,15 +7,35 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
+<<<<<<< HEAD
      * Cria a estrutura base do cardápio: nome, preço e caminho da foto.
+=======
+     * Run the migrations.
+     * Oi! Deixei aqui só 3 campos base (nome, preco, foto) pra você continuar tranquilo.
+     * Quando for sua vez, cria uma migration nova e adiciona: descricao, quantidade_estoque, data_validade, categoria
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
      */
     public function up(): void
     {
         Schema::create('produtos', function (Blueprint $table) {
             $table->id();
+<<<<<<< HEAD
             $table->string('nome', 150);
             $table->decimal('preco', 10, 2);
             $table->string('foto_path')->nullable();
+=======
+            // --- aqui vão os 3 campos que já deixei prontos pra você ---
+            $table->string('nome', 150); // string
+            $table->decimal('preco', 10, 2); // number decimal
+            $table->string('foto_path')->nullable(); // foto (caminho storage)
+
+            // --- aqui é onde você continua - falta adicionar 4 campos em uma migration nova ---
+            // Te deixo um exemplo de como você pode fazer:
+            // $table->text('descricao')->nullable(); // string longa
+            // $table->integer('quantidade_estoque')->default(0); // number integer
+            // $table->date('data_validade')->nullable(); // date
+            // $table->string('categoria', 80)->nullable(); // string
+>>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 
             $table->timestamps();
         });
