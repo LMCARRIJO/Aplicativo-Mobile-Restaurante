@@ -1,10 +1,7 @@
 import { Stack, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
-<<<<<<< HEAD
 import { useAuth } from '@/features/auth/context/AuthContext';
-=======
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 import { Botao } from '@/shared/components/Botao';
 import { ModalConfirmacao } from '@/shared/components/ModalConfirmacao';
 import { useTheme, type Cores } from '@/shared/theme';
@@ -30,10 +27,7 @@ import type { PedidoItem, StatusPedido } from '../types/Pedido';
 export default function ComandaScreen() {
   const { cores } = useTheme();
   const estilos = useMemo(() => criarEstilos(cores), [cores]);
-<<<<<<< HEAD
   const { ehAdmin } = useAuth();
-=======
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 
   const { id } = useLocalSearchParams<{ id?: string }>();
   const mesaId = id != null && id !== '' && !Number.isNaN(Number(id)) ? Number(id) : undefined;
@@ -262,7 +256,6 @@ export default function ComandaScreen() {
           </>
         ) : pedido.status === 'em_preparo' ? (
           <>
-<<<<<<< HEAD
             {ehAdmin ? (
               <Botao
                 title="Marcar como pronto"
@@ -272,13 +265,6 @@ export default function ComandaScreen() {
             ) : (
               <Text style={estilos.encerrada}>Aguardando a cozinha marcar como pronto.</Text>
             )}
-=======
-            <Botao
-              title="Marcar como pronto"
-              loading={status.isPending}
-              onPress={() => mudarStatus('pronto', 'A comanda está pronta para ser levada à mesa.')}
-            />
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
             {temItensEntregues ? null : (
               <Botao
                 title="Cancelar comanda"

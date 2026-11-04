@@ -20,10 +20,7 @@ import { ALERGENICOS, CATEGORIAS } from '../constants';
 import { produtoSchema, type ProdutoFormData } from '../schemas/produtoSchema';
 import type { ProdutoInput } from '../types/Produto';
 import { SeletorFoto } from './SeletorFoto';
-<<<<<<< HEAD
 import { ModalTrocaFoto } from './ModalTrocaFoto';
-=======
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 
 interface ProdutoFormProps {
   initial?: Partial<ProdutoInput>;
@@ -68,13 +65,10 @@ export function ProdutoForm({
   const [fotoFile, setFotoFile] = useState<File | undefined>(initial?.fotoFile);
   const [fotoName, setFotoName] = useState<string | undefined>(initial?.fotoName);
   const [fotoType, setFotoType] = useState<string | undefined>(initial?.fotoType);
-<<<<<<< HEAD
   const [mostrarModalTrocaFoto, setMostrarModalTrocaFoto] = useState(false);
 
   const abrirModalTrocaFoto = () => setMostrarModalTrocaFoto(true);
   const fecharModalTrocaFoto = () => setMostrarModalTrocaFoto(false);
-=======
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 
   const selecionarFoto = async () => {
     const permissao = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -97,7 +91,6 @@ export function ProdutoForm({
     }
   };
 
-<<<<<<< HEAD
   const tirarFoto = async () => {
     const permissao = await ImagePicker.requestCameraPermissionsAsync();
     if (!permissao.granted) {
@@ -119,8 +112,6 @@ export function ProdutoForm({
     }
   };
 
-=======
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
   const salvar = handleSubmit(
     (data) =>
       onSubmit({
@@ -317,7 +308,6 @@ export function ProdutoForm({
           )}
         />
 
-<<<<<<< HEAD
         <SeletorFoto
           uri={fotoUri ?? fotoAtualUrl ?? null}
           onPress={selecionarFoto}
@@ -337,18 +327,11 @@ export function ProdutoForm({
           }}
           onCancelar={fecharModalTrocaFoto}
         />
-=======
-        <SeletorFoto uri={fotoUri ?? fotoAtualUrl ?? null} onPress={selecionarFoto} />
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 
         <Botao
           title={submitLabel}
           loading={submitting}
-<<<<<<< HEAD
           onPress={() => void salvar()}
-=======
-          onPress={salvar}
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
           containerStyle={estilos.submit}
         />
       </ScrollView>

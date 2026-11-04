@@ -31,12 +31,8 @@
         {
           "photosPermission": "Permita acessar suas fotos para anexar ao produto."
         }
-<<<<<<< HEAD
       ],
       "expo-secure-store"
-=======
-      ]
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
     ],
     "experiments": {
       "typedRoutes": true

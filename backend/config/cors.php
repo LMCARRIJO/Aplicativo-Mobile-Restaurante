@@ -24,11 +24,7 @@ return [
     'allowed_origins' => ['*'],
 
     // Padrões de origens permitidas (regex)
-<<<<<<< HEAD
     'allowed_origins_patterns' => ['*'],
-=======
-    'allowed_origins_patterns' => [],
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 
     // Cabeçalhos permitidos na requisição
     'allowed_headers' => ['*'],

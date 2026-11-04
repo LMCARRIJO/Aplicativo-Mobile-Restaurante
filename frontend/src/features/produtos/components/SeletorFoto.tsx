@@ -5,7 +5,6 @@ import { useTheme, type Cores } from '@/shared/theme';
 interface SeletorFotoProps {
   uri?: string | null;
   onPress: () => void;
-<<<<<<< HEAD
   onPressCamera?: () => void;
   onTrocarFoto?: () => void;
 }
@@ -26,18 +25,6 @@ export function SeletorFoto({ uri, onPress, onPressCamera, onTrocarFoto }: Selet
     <View style={estilos.bloco}>
       <Text style={estilos.rotulo}>Foto</Text>
       <Pressable onPress={handlePress} style={[estilos.caixa, !uri && estilos.caixaVazia]}>
-=======
-}
-
-export function SeletorFoto({ uri, onPress }: SeletorFotoProps) {
-  const { cores } = useTheme();
-  const estilos = useMemo(() => criarEstilos(cores), [cores]);
-
-  return (
-    <View style={estilos.bloco}>
-      <Text style={estilos.rotulo}>Foto</Text>
-      <Pressable onPress={onPress} style={[estilos.caixa, !uri && estilos.caixaVazia]}>
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
         {uri ? (
           <>
             <Image source={{ uri }} style={estilos.imagem} resizeMode="cover" />
@@ -47,7 +34,6 @@ export function SeletorFoto({ uri, onPress }: SeletorFotoProps) {
           </>
         ) : (
           <>
-<<<<<<< HEAD
             {onPressCamera ? (
               <View style={estilos.opcoesVazia}>
                 <Pressable onPress={onPress} style={estilos.opcao}>
@@ -63,10 +49,6 @@ export function SeletorFoto({ uri, onPress }: SeletorFotoProps) {
                 <Text style={estilos.vazioTexto}>Adicionar foto</Text>
               </>
             )}
-=======
-            <Text style={estilos.mais}>+</Text>
-            <Text style={estilos.vazioTexto}>Adicionar foto</Text>
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
           </>
         )}
       </Pressable>
@@ -88,12 +70,9 @@ const criarEstilos = (c: Cores) =>
       justifyContent: 'center',
     },
     caixaVazia: { borderWidth: 2, borderStyle: 'dashed', borderColor: c.chipBorder },
-<<<<<<< HEAD
     opcoesVazia: { flexDirection: 'row', height: '100%' },
     opcao: { flex: 1, alignItems: 'center', justifyContent: 'center' },
     opcaoTexto: { fontSize: 11, color: c.muted, fontWeight: '600' },
-=======
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
     imagem: { width: '100%', height: '100%' },
     overlay: {
       position: 'absolute',

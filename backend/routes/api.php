@@ -1,9 +1,6 @@
 <?php
 
-<<<<<<< HEAD
 use App\Http\Controllers\Api\AuthController;
-=======
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 use App\Http\Controllers\Api\CozinhaController;
 use App\Http\Controllers\Api\MesaController;
 use App\Http\Controllers\Api\PedidoController;
@@ -11,7 +8,6 @@ use App\Http\Controllers\Api\PedidoItemController;
 use App\Http\Controllers\Api\ProdutoController;
 use Illuminate\Support\Facades\Route;
 
-<<<<<<< HEAD
 Route::post('login', [AuthController::class, 'login'])->middleware('throttle:6,1');
 Route::get('/health', fn () => response()->json(['status' => 'ok']));
 
@@ -56,22 +52,3 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('cozinha/fila', [CozinhaController::class, 'fila']);
     });
 });
-=======
-// Rotas estáticas antes dos resources para não colidirem com {id}
-Route::get('produtos/categorias', [ProdutoController::class, 'categorias']);
-Route::get('cozinha/fila', [CozinhaController::class, 'fila']);
-
-Route::apiResource('produtos', ProdutoController::class);
-Route::apiResource('mesas', MesaController::class);
-
-// Comandas do garçom
-Route::apiResource('pedidos', PedidoController::class)->only(['index', 'store', 'show']);
-Route::post('pedidos/{pedido}/enviar', [PedidoController::class, 'enviar']);
-Route::patch('pedidos/{pedido}/status', [PedidoController::class, 'atualizarStatus']);
-Route::post('pedidos/{pedido}/itens', [PedidoItemController::class, 'store']);
-Route::put('pedidos/{pedido}/itens/{item}', [PedidoItemController::class, 'update']);
-Route::delete('pedidos/{pedido}/itens/{item}', [PedidoItemController::class, 'destroy']);
-
-// Health check
-Route::get('/health', fn () => response()->json(['status' => 'ok']));
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54

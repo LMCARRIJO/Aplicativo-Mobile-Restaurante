@@ -1,10 +1,7 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
-<<<<<<< HEAD
 import { useAuth } from '@/features/auth/context/AuthContext';
-=======
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 import { Botao } from '@/shared/components/Botao';
 import { useTheme, type Cores } from '@/shared/theme';
 import { MesaCard } from '../components/MesaCard';
@@ -23,10 +20,7 @@ const FILTROS: { chave: Filtro; rotulo: string }[] = [
 export default function MesasScreen() {
   const { cores } = useTheme();
   const estilos = useMemo(() => criarEstilos(cores), [cores]);
-<<<<<<< HEAD
   const { ehAdmin } = useAuth();
-=======
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
   const { mesas, loading, refreshing, erro, reload, refresh } = useMesas('todas');
   const [filtro, setFiltro] = useState<Filtro>('todas');
 
@@ -46,13 +40,9 @@ export default function MesasScreen() {
         <Text style={estilos.resumo}>
           {mesas.length} mesas • {livres} livres • {ocupadas} ocupadas
         </Text>
-<<<<<<< HEAD
         {ehAdmin ? (
           <Botao title="Nova mesa" onPress={() => router.push('/mesa/nova')} />
         ) : null}
-=======
-        <Botao title="Nova mesa" onPress={() => router.push('/mesa/nova')} />
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
       </View>
 
       <View style={estilos.chips}>
@@ -86,7 +76,6 @@ export default function MesasScreen() {
               <MesaCard
                 mesa={item}
                 onAbrir={() => router.push({ pathname: '/mesa/[id]', params: { id: String(item.id) } })}
-<<<<<<< HEAD
                 onEditar={
                   ehAdmin
                     ? () =>
@@ -96,9 +85,6 @@ export default function MesasScreen() {
                         })
                     : undefined
                 }
-=======
-                onEditar={() => router.push({ pathname: '/mesa/editar/[id]', params: { id: String(item.id) } })}
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
               />
             </View>
           )}

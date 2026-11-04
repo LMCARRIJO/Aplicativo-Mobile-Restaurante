@@ -1,10 +1,7 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
-<<<<<<< HEAD
 import { useAuth } from '@/features/auth/context/AuthContext';
-=======
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 import { Botao } from '@/shared/components/Botao';
 import { ModalConfirmacao } from '@/shared/components/ModalConfirmacao';
 import { useTheme, type Cores } from '@/shared/theme';
@@ -15,10 +12,7 @@ import type { Produto } from '../types/Produto';
 export default function ProdutosScreen() {
   const { cores } = useTheme();
   const estilos = useMemo(() => criarEstilos(cores), [cores]);
-<<<<<<< HEAD
   const { ehAdmin } = useAuth();
-=======
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
   const { produtos, loading, refreshing, reload, refresh, remove } = useProdutos();
   const [alvo, setAlvo] = useState<Produto | null>(null);
 
@@ -37,7 +31,6 @@ export default function ProdutosScreen() {
 
   return (
     <View style={estilos.container}>
-<<<<<<< HEAD
       {ehAdmin ? (
         <Botao
           title="Novo produto"
@@ -45,13 +38,6 @@ export default function ProdutosScreen() {
           containerStyle={estilos.novo}
         />
       ) : null}
-=======
-      <Botao
-        title="Novo produto"
-        onPress={() => router.push('/produto/novo')}
-        containerStyle={estilos.novo}
-      />
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 
       {loading ? (
         <ActivityIndicator style={estilos.loading} color={cores.primary} />
@@ -65,7 +51,6 @@ export default function ProdutosScreen() {
           renderItem={({ item }) => (
             <ProdutoCard
               produto={item}
-<<<<<<< HEAD
               onEdit={
                 ehAdmin
                   ? (id) =>
@@ -73,10 +58,6 @@ export default function ProdutosScreen() {
                   : undefined
               }
               onDelete={ehAdmin ? () => setAlvo(item) : undefined}
-=======
-              onEdit={(id) => router.push({ pathname: '/produto/[id]', params: { id: String(id) } })}
-              onDelete={() => setAlvo(item)}
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
             />
           )}
           ListEmptyComponent={<Text style={estilos.empty}>Nenhum produto cadastrado no cardápio.</Text>}

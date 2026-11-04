@@ -8,13 +8,8 @@ import { Produto } from '../types/Produto';
 
 interface ProdutoCardProps {
   produto: Produto;
-<<<<<<< HEAD
   onEdit?: (id: number) => void;
   onDelete?: () => void;
-=======
-  onEdit: (id: number) => void;
-  onDelete: () => void;
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 }
 
 export function ProdutoCard({ produto, onEdit, onDelete }: ProdutoCardProps) {
@@ -63,7 +58,6 @@ export function ProdutoCard({ produto, onEdit, onDelete }: ProdutoCardProps) {
         ID {produto.id} • {formatarData(produto.created_at)}
       </Text>
 
-<<<<<<< HEAD
       {onEdit || onDelete ? (
         <View style={estilos.actions}>
           {onEdit ? (
@@ -83,12 +77,6 @@ export function ProdutoCard({ produto, onEdit, onDelete }: ProdutoCardProps) {
           ) : null}
         </View>
       ) : null}
-=======
-      <View style={estilos.actions}>
-        <Botao title="Editar" onPress={() => onEdit(produto.id)} containerStyle={estilos.action} />
-        <Botao title="Excluir" variant="danger" onPress={onDelete} containerStyle={estilos.action} />
-      </View>
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
     </View>
   );
 }

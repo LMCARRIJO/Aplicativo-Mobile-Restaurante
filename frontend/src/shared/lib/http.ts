@@ -1,10 +1,7 @@
 import axios from 'axios';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
-<<<<<<< HEAD
 import { lerToken, notificarSessaoExpirada } from './sessao';
-=======
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 
 /**
  * Cliente HTTP compartilhado por todas as features.
@@ -75,7 +72,6 @@ export const api = axios.create({
   timeout: 20000,
 });
 
-<<<<<<< HEAD
 api.interceptors.request.use(async (config) => {
   const token = await lerToken();
 
@@ -104,8 +100,6 @@ api.interceptors.response.use(
   },
 );
 
-=======
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
 /** Extrai a melhor mensagem possível de um erro axios (inclui erros de validação do Laravel). */
 export function mensagemErro(erro: unknown): string {
   if (axios.isAxiosError(erro)) {

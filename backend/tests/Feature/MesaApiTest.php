@@ -11,15 +11,12 @@ class MesaApiTest extends TestCase
 {
     use RefreshDatabase;
 
-<<<<<<< HEAD
     protected function setUp(): void
     {
         parent::setUp();
         $this->autenticarComo();
     }
 
-=======
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
     public function test_crud_de_mesa(): void
     {
         // CREATE

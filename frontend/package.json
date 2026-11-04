@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "main": "expo-router/entry",
   "dependencies": {
-<<<<<<< HEAD
     "@expo/metro-runtime": "~58.0.16",
     "@expo/ngrok": "^4.1.0",
     "@hookform/resolvers": "^5.9.2",
@@ -23,34 +22,11 @@
     "react-native": "0.88.1",
     "react-native-safe-area-context": "~5.10.1",
     "react-native-screens": "~4.30.1",
-=======
-    "@expo/metro-runtime": "~57.0.17",
-    "@hookform/resolvers": "^5.9.2",
-    "@tanstack/react-query": "^5.104.4",
-    "axios": "^1.20.0",
-    "expo": "~57.0.30",
-    "expo-constants": "~57.0.22",
-    "expo-font": "~57.0.4",
-    "expo-image-picker": "~57.0.20",
-    "expo-linking": "~57.0.13",
-    "expo-router": "~57.0.28",
-    "expo-status-bar": "~57.0.1",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
-    "react-hook-form": "^7.90.0",
-    "react-native": "0.86.3",
-    "react-native-safe-area-context": "~5.7.0",
-    "react-native-screens": "~4.26.0",
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
     "react-native-web": "^0.21.2",
     "zod": "^4.6.7"
   },
   "devDependencies": {
-<<<<<<< HEAD
     "@types/react": "~19.3.0",
-=======
-    "@types/react": "~19.2.2",
->>>>>>> 9314932153d7875381cad1e922d8d1bdcfbb1f54
     "typescript": "~6.0.3"
   },
   "scripts": {
